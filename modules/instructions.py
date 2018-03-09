@@ -1,9 +1,57 @@
 import re
 
+class ErrorCheck:
+
+	def __init__(self):
+		self.error = False
+
+	def valid_r_type_instruction(self,instruction):
+		if 'DADDU' in instruction or 'daddu' in instruction:
+			return True
+		elif 'SLT' in instruction or 'slt' in instruction:
+			return True
+		else:
+			return False
+
+	def valid_r_type_syntax(self,instruction):
+		if re.search(r'(R[0-9]|R[1-3][0-1]), (R[0-9]|R[1-3][0-1]), (R[0-9]|R[1-3][0-1])$',instruction) is None:
+			return False
+		else:
+			return True
+
+	def valid_i_type_instruction(self,instruction):
+		if 'DADDIU' in instruction or 'daddiu' in instruction:
+			return True
+		elif 'XORI' in instruction or 'xori' in instruction:
+			return True
+		else:
+			return False
+
+	def valid_i_type_syntax(self,instruction):
+		if re.search(r'(R[0-9]|R[1-3][0-1]), (R[0-9]|R[1-3][0-1]), #\d{4}$',instruction) is None:
+			return False
+		else:
+			return True
+
+	def valid_memory_reference_instruction(self,instruction):
+		if 'LD' in instruction or 'ld' in instruction:
+			return True
+		elif 'SD' in instruction or 'sd' in instruction:
+			return True
+		else:
+			return False
+
+	def valid_memory_reference_syntax(self,instruction):
+		if re.search(r'(R[0-9]|R[1-3][0-1]), \d{4}\((R[0-9]|R[1-3][0-1])\)$',instruction) is None:
+			return False
+		else:
+			return True
+
 class Opcode:
 
 	def __init__(self):
 		self.opcode = 0
+		self.error_check = ErrorCheck()
 
 	def to_binary(self,register):
 		return bin(int(register[1:]))[2:].zfill(5)
@@ -35,23 +83,45 @@ class Opcode:
 		base = base.group(0)
 		return (self.to_binary(base),self.to_binary(rt),offset)
 
-	def get_opcode(self,instruction):
-		if 'DADDU' in instruction:
-			opcode = '000000' + self.r_type(instruction)[0] + self.r_type(instruction)[1] + self.r_type(instruction)[2] + '00000101101'
-		elif 'SLT' in instruction:
-			opcode = '000000' + self.r_type(instruction)[0] + self.r_type(instruction)[1] + self.r_type(instruction)[2] + '00000101010'
-		elif 'DADDIU' in instruction:
-			opcode = '011001' + self.i_type(instruction[0]) + self.i_type(instruction[1]) + self.i_type(instruction[2])
-		elif 'XORI' in instruction:
-			opcode = '001110' + self.i_type(instruction[0]) + self.i_type(instruction[1]) + self.i_type(instruction[2])
-		elif 'LD' in instruction:
-			opcode = '110111'
-		elif 'SD' in instruction:
-			opcode = '111111'
+	def get_opcode(self,instruction):	
+		if 'DADDU' in instruction or 'daddu' in instruction:
+			if self.error_check.valid_r_type_syntax(instruction):
+				opcode = '000000' + self.r_type(instruction)[0] + self.r_type(instruction)[1] + self.r_type(instruction)[2] + '00000101101'
+			else:
+				return 'Invalid Syntax ' + instruction
+		elif 'SLT' in instruction or 'slt' in instruction:
+			if self.error_check.valid_r_type_syntax(instruction):
+				opcode = '000000' + self.r_type(instruction)[0] + self.r_type(instruction)[1] + self.r_type(instruction)[2] + '00000101010'
+			else:
+				return 'Invalid Syntax ' + instruction
+		elif 'DADDIU' in instruction or 'daddiu' in instruction:
+			if self.error_check.valid_i_type_syntax(instruction):
+				opcode = '011001' + self.i_type(instruction[0]) + self.i_type(instruction[1]) + self.i_type(instruction[2])
+			else:
+				return 'Invalid Syntax ' + instruction
+		elif 'XORI' in instruction or 'xori' in instruction:
+			if self.error_check.valid_i_type_syntax(instruction):
+				opcode = '001110' + self.i_type(instruction[0]) + self.i_type(instruction[1]) + self.i_type(instruction[2])
+			else:
+				return 'Invalid Syntax ' + instruction
+		elif 'LD' in instruction or 'ld' in instruction:
+			if self.error_check.valid_memory_reference_syntax(instruction):
+				opcode = '110111'
+			else:
+				return 'Invalid Syntax ' + instruction
+		elif 'SD' in instruction or 'sd' in instruction:
+			if self.error_check.valid_memory_reference_syntax(instruction):
+				opcode = '111111'
+			else:
+				return 'Invalid Syntax ' + instruction
+		else:
+			return 'Unknown Instruction ' + instruction
 
 		return self.to_hex(opcode)
 
 
 
-
+if __name__ == '__main__':
+	temp = ErrorCheck()
+	print(temp.valid_i_type_syntax('LD R1, 1000(R0)'))
 
