@@ -61,7 +61,7 @@ class Opcode:
 
 	def r_type(self,instruction):
 		temp = instruction.split(',')
-		match = list(map(lambda x: re.search(r'R[0-31]',x),temp))
+		match = list(map(lambda x: re.search(r'(R|r)[0-9]$|(R|r)[1-2][0-9]$|(R|r)3[0-1]$',x),temp))
 		#(rs,rt,rd)
 		return (self.to_binary(match[1].group(0)),self.to_binary(match[2].group(0)),self.to_binary(match[0].group(0)))
 
@@ -81,7 +81,6 @@ class Opcode:
 		offset = bin(int(temp[0][1:],16))[2:].zfill(16)
 		base = re.search(r'(R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1]',temp[1])
 		base = base.group(0)
-		print(rt)
 		return (self.to_binary(base),self.to_binary(rt),offset)
 
 	def get_opcode(self,instruction):	
@@ -97,7 +96,7 @@ class Opcode:
 				return 'Invalid Syntax ' + instruction
 		elif 'DADDIU' in instruction or 'daddiu' in instruction:
 			if self.error_check.valid_i_type_syntax(instruction):
-				opcode = '011001' + self.i_type(instruction[0]) + self.i_type(instruction[1]) + self.i_type(instruction[2])
+				opcode = '011001' + self.i_type(instruction)[0] + self.i_type(instruction)[1] + self.i_type(instruction)[2]
 			else:
 				return 'Invalid Syntax ' + instruction
 		elif 'XORI' in instruction or 'xori' in instruction:
@@ -124,5 +123,5 @@ class Opcode:
 
 if __name__ == '__main__':
 	temp = Opcode()
-	print(temp.get_opcode('DADDIU r14, r0, #1000'))
+	print(temp.get_opcode('daddu r1, r2, r3'))
 
