@@ -14,7 +14,7 @@ class ErrorCheck:
 			return False
 
 	def valid_r_type_syntax(self,instruction):
-		if re.search(r'(R[0-9]|R[1-3][0-1]), (R[0-9]|R[1-3][0-1]), (R[0-9]|R[1-3][0-1])$',instruction) is None:
+		if re.search(r'((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1]), ((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1]), ((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1])$',instruction) is None:
 			return False
 		else:
 			return True
@@ -28,7 +28,7 @@ class ErrorCheck:
 			return False
 
 	def valid_i_type_syntax(self,instruction):
-		if re.search(r'(R[0-9]|R[1-3][0-1]), (R[0-9]|R[1-3][0-1]), #\d{4}$',instruction) is None:
+		if re.search(r'((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1]), ((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1]), #\d{4}$',instruction) is None:
 			return False
 		else:
 			return True
@@ -42,7 +42,7 @@ class ErrorCheck:
 			return False
 
 	def valid_memory_reference_syntax(self,instruction):
-		if re.search(r'(R[0-9]|R[1-3][0-1]), \d{4}\((R[0-9]|R[1-3][0-1])\)$',instruction) is None:
+		if re.search(r'((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1]), \d{4}\(((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1])\)$',instruction) is None:
 			return False
 		else:
 			return True
@@ -67,20 +67,21 @@ class Opcode:
 
 	def i_type(self,instruction):
 		temp = instruction.split(',')
-		rt = re.search(r'R[0-31]',temp[0])
-		rs = re.search(r'R[0-31]',temp[1])
+		rt = re.search(r'(R|r)[0-9]$|(R|r)[1-2][0-9]$|(R|r)3[0-1]$',temp[0])
+		rs = re.search(r'(R|r)[0-9]$|(R|r)[1-2][0-9]$|(R|r)3[0-1]$',temp[1])
 		immediate = bin(int(temp[2][2:],16))[2:].zfill(16)
 
 		return (self.to_binary(rs.group(0)),self.to_binary(rt.group(0)),immediate)
 
 	def memory_reference(self,instruction):
 		temp = instruction.split(',')
-		rt = re.search(r'R[0-31]',temp[0])
+		rt = re.search(r'(R|r)[0-9]$|(R|r)[1-2][0-9]$|(R|r)3[0-1]$',temp[0])
 		rt = rt.group(0)
 		temp = temp[1].split('(')
 		offset = bin(int(temp[0][1:],16))[2:].zfill(16)
-		base = re.search(r'R[0-31]',temp[1])
+		base = re.search(r'(R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1]',temp[1])
 		base = base.group(0)
+		print(rt)
 		return (self.to_binary(base),self.to_binary(rt),offset)
 
 	def get_opcode(self,instruction):	
@@ -106,7 +107,7 @@ class Opcode:
 				return 'Invalid Syntax ' + instruction
 		elif 'LD' in instruction or 'ld' in instruction:
 			if self.error_check.valid_memory_reference_syntax(instruction):
-				opcode = '110111'
+				opcode = '110111' + self.memory_reference(instruction)[0] + self.memory_reference(instruction)[1] + self.memory_reference(instruction)[2]
 			else:
 				return 'Invalid Syntax ' + instruction
 		elif 'SD' in instruction or 'sd' in instruction:
@@ -122,6 +123,6 @@ class Opcode:
 
 
 if __name__ == '__main__':
-	temp = ErrorCheck()
-	print(temp.valid_i_type_syntax('LD R1, 1000(R0)'))
+	temp = Opcode()
+	print(temp.get_opcode('DADDIU r14, r0, #1000'))
 
