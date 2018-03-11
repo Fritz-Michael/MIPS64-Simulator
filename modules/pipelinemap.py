@@ -38,11 +38,13 @@ class Pipeline:
 				cycle[0] = 'IF'
 
 			self.cycles.append(cycle)
-
 		print(self.cycles)
 
 
 if __name__ == '__main__':
-	instructions = ['0043082D', '0043082E', '0043082F']
+	instructions = ['0043082D']
 	temp = Pipeline(instructions)
 	temp.get_pipeline()
+	# print(hex(int(bin(int(instructions[0],16))[2:].zfill(32)[6:11],2))[2:].zfill(16))
+	# print(bin(int(instructions[0],16))[2:].zfill(32)[11:16])
+	# print(bin(int(instructions[0],16))[2:].zfill(32)[16:])

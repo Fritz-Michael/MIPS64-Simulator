@@ -75,7 +75,9 @@ class InternalRegisters:
 			self.if_id.NPC += 4
 
 	def instruction_decode(self):
-		pass
+		self.id_ex.A = hex(int(bin(int(self.if_id.IR,16))[2:].zfill(32)[6:11],2))[2:].zfill(16).upper()
+		self.id_ex.B = hex(int(bin(int(self.if_id.IR,16))[2:].zfill(32)[11:16],2))[2:].zfill(16).upper()
+		self.id_ex.IMM = hex(int(bin(int(self.if_id.IR,16))[2:].zfill(32)[16:],2))[2:].zfill(16).upper()
 
 	def execution(self):
 		pass
