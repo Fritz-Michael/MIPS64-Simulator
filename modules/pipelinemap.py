@@ -9,7 +9,6 @@ class Pipeline:
 
 	def get_pipeline(self):
 		end = False
-		start = True
 
 		while not end:
 			cycle = [None,None,None,None,None]
