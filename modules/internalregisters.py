@@ -47,10 +47,10 @@ class InternalRegisters:
 		self.wb = WB()
 
 	def cascade_all(self):
-		self.cascade_if_to_id()
-		self.cascade_id_to_ex()
-		self.cascade_ex_to_mem()
 		self.cascade_mem_to_wb()
+		self.cascade_ex_to_mem()
+		self.cascade_id_to_ex()
+		self.cascade_if_to_id()
 
 	def cascade_if_to_id(self):
 		self.id_ex.IR = self.if_id.IR
@@ -67,9 +67,12 @@ class InternalRegisters:
 		self.wb.IR = self.mem_wb.IR
 
 	def instruction_fetch(self):
-		self.if_id.IR = self.instructions
-		self.if_id.PC += 4
-		self.if_id.NPC += 4
+		if self.if_id.PC/4 > len(self.instructions)-1:
+			self.if_id.IR = 0
+		else:
+			self.if_id.IR = self.instructions[int(self.if_id.PC/4)]
+			self.if_id.PC += 4
+			self.if_id.NPC += 4
 
 	def instruction_decode(self):
 		pass
