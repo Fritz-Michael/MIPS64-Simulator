@@ -75,12 +75,20 @@ class InternalRegisters:
 			self.if_id.NPC += 4
 
 	def instruction_decode(self):
+		#self.cascade_if_to_id()
 		self.id_ex.A = hex(int(bin(int(self.if_id.IR,16))[2:].zfill(32)[6:11],2))[2:].zfill(16).upper()
 		self.id_ex.B = hex(int(bin(int(self.if_id.IR,16))[2:].zfill(32)[11:16],2))[2:].zfill(16).upper()
 		self.id_ex.IMM = hex(int(bin(int(self.if_id.IR,16))[2:].zfill(32)[16:],2))[2:].zfill(16).upper()
 
 	def execution(self):
-		pass
+		if self.ex_mem.IR[0:7] == '': #register-to-register
+			pass
+		elif self.ex_mem.IR[0:7] == '011001' or self.ex_mem.IR[0:7] == '001110': #register-to-immediate
+			pass
+		elif self.ex_mem.IR[0:7] == '': #shift
+			pass
+		elif self.ex_mem.IR[0:7] == '110111' or self.ex_mem.IR[0:7] == '111111': #memor reference
+			pass
 
 	def memory_access(self):
 		pass
