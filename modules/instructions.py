@@ -14,7 +14,7 @@ class ErrorCheck:
 			return False
 
 	def valid_r_type_syntax(self,instruction):
-		if re.search(r'((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1]), ((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1]), ((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1])$',instruction) is None:
+		if re.search(r'((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1]),(\s)*((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1]),(\s)*((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1])(\s)*$',instruction) is None:
 			return False
 		else:
 			return True
@@ -28,7 +28,7 @@ class ErrorCheck:
 			return False
 
 	def valid_i_type_syntax(self,instruction):
-		if re.search(r'((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1]), ((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1]), #\d{4}$',instruction) is None:
+		if re.search(r'((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1]),(\s)*((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1]),(\s)*#\d{4}(\s)*$',instruction) is None:
 			return False
 		else:
 			return True
@@ -42,19 +42,19 @@ class ErrorCheck:
 			return False
 
 	def valid_memory_reference_syntax(self,instruction):
-		if re.search(r'((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1]), \d{4}\(((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1])\)$',instruction) is None:
+		if re.search(r'((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1]),(\s)*\d{4}\(((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1])\)(\s)*$',instruction) is None:
 			return False
 		else:
 			return True
 
 	def valid_bltz_instruction(self, instruction):
-		if re.search(r'((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1]), \w*$',instruction) is None:
+		if re.search(r'((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1]),(\s)*\w*(\s)*$',instruction) is None:
 			return False
 		else:
 			return True
 
 	def valid_bc_instruction(self, instruction):
-		if re.search(r'(BC|bc) \w*$',instruction) is None:
+		if re.search(r'(BC|bc) (\s)*\w*(\s)*$',instruction) is None:
 			return False
 		else:
 			return True
@@ -76,7 +76,7 @@ class Opcode:
 
 	def to_binary(self,register):
 		return bin(int(register[1:]))[2:].zfill(5)
-	
+
 	def to_hex(self,opcode):
 		return hex(int(opcode,2))[2:].zfill(8).upper()
 
@@ -124,7 +124,7 @@ class Opcode:
 		else:
 			return False
 
-	def get_opcode(self,instruction):	
+	def get_opcode(self,instruction):
 		if 'DADDU' in instruction or 'daddu' in instruction:
 			if self.error_check.valid_r_type_syntax(instruction):
 				opcode = '000000' + self.r_type(instruction)[0] + self.r_type(instruction)[1] + self.r_type(instruction)[2] + '00000101101'
@@ -179,7 +179,6 @@ class Opcode:
 
 
 if __name__ == '__main__':
-	instruction = ['BLTZ R1, L1','NOP','L1: DADDU R1, R2, R3']
+	instruction = ['BLTZ R1,        L1','NOP','L1: DADDU R1,             R2,              R3']
 	temp = Opcode(instruction)
 	print(temp.get_opcode(instruction[0]))
-
