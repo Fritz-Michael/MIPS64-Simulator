@@ -128,7 +128,7 @@ class Opcode:
 		if 'DADDU' in instruction or 'daddu' in instruction:
 			if self.error_check.valid_r_type_syntax(instruction):
 				opcode = '000000' + self.r_type(instruction)[0] + self.r_type(instruction)[1] + self.r_type(instruction)[2] + '00000101101'
-			else:
+			else: 
 				return 'Invalid Syntax ' + instruction
 		elif 'SLT' in instruction or 'slt' in instruction:
 			if self.error_check.valid_r_type_syntax(instruction):
