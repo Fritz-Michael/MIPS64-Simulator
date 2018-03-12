@@ -128,7 +128,7 @@ class Opcode:
 		if 'DADDU' in instruction or 'daddu' in instruction:
 			if self.error_check.valid_r_type_syntax(instruction):
 				opcode = '000000' + self.r_type(instruction)[0] + self.r_type(instruction)[1] + self.r_type(instruction)[2] + '00000101101'
-			else: 
+			else:
 				return 'Invalid Syntax ' + instruction
 		elif 'SLT' in instruction or 'slt' in instruction:
 			if self.error_check.valid_r_type_syntax(instruction):
@@ -179,6 +179,13 @@ class Opcode:
 
 
 if __name__ == '__main__':
-	instruction = ['BLTZ R1,        L1','NOP','L1: DADDU R1,             R2,              R3']
-	temp = Opcode(instruction)
-	print(temp.get_opcode(instruction[0]))
+	# instruction = ['BLTZ R1,        L1','NOP','L1: DADDU R1,             R2,              R3']
+	instructions = []
+	with open("code.txt", 'r') as programText:
+		for line in programText:
+			formattedLine = line.replace("\n", "")
+			instructions.append(formattedLine)
+
+	print(instructions)
+	temp = Opcode(instructions)
+	print(temp.get_opcode(instructions[1]))
