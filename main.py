@@ -38,6 +38,7 @@ class OpcodeView(QtWidgets.QGridLayout):
 	def __init__(self,frame):
 		super().__init__()
 		self.frame = frame
+		self.init_ui()
 
 	def init_ui(self):
 		self.opcode_label = QtWidgets.QLabel("Opcode")
@@ -49,6 +50,7 @@ class MemoryAndRegisterView(QtWidgets.QGridLayout):
 	def __init__(self,frame):
 		super().__init__()
 		self.frame = frame
+		self.init_ui()
 
 	def init_ui(self):
 		self.memory_label = QtWidgets.QLabel("Memory and register")
@@ -60,6 +62,7 @@ class PipelineMapView(QtWidgets.QGridLayout):
 	def __init__(self,frame):
 		super().__init__()
 		self.frame = frame
+		self.init_ui()
 
 	def init_ui(self):
 		self.pipeline_label = QtWidgets.QLabel("Pipeline")
@@ -75,8 +78,8 @@ class Tabs(QtWidgets.QGridLayout):
 		self.opcode_tabs = WindowFrame(OpcodeView)
 		self.memory_tabs = WindowFrame(MemoryAndRegisterView)
 		self.pipeline_tabs = WindowFrame(PipelineMapView)
-		self.tabs.addTab(self.input_tabs,"Input")
 		self.tabs.addTab(self.opcode_tabs,"Opcode")
+		self.tabs.addTab(self.input_tabs,"Input")
 		self.tabs.addTab(self.memory_tabs,"Memory and Registers")
 		self.tabs.addTab(self.pipeline_tabs,"Pipeline Map")
 		self.addWidget(self.tabs)
