@@ -87,7 +87,7 @@ class InternalRegisters:
 			pass
 		elif self.ex_mem.IR[0:7] == '': #shift
 			pass
-		elif self.ex_mem.IR[0:7] == '110111' or self.ex_mem.IR[0:7] == '111111': #memor reference
+		elif self.ex_mem.IR[0:7] == '110111' or self.ex_mem.IR[0:7] == '111111': #memory reference
 			pass
 
 	def memory_access(self):
