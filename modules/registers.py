@@ -3,7 +3,7 @@
 class Registers:
 	
 	def __init__(self):
-		self.R[32] = 0
+		self.reinit()
 
 	def reinit(self):
-		self.R[32] = 0
+		self.R = [0 for x in range(32)]

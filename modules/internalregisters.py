@@ -41,6 +41,7 @@ class InternalRegisters:
 
 	def __init__(self, instructions):
 		self.instructions = instructions
+		self.registers = Registers()
 		self.if_id = IF_ID()
 		self.id_ex = ID_EX()
 		self.ex_mem = EX_MEM()
@@ -79,9 +80,9 @@ class InternalRegisters:
 
 	def instruction_decode(self):
 		if self.if_id.IR != 0:
-			self.id_ex.A = hex(int(bin(int(self.if_id.IR,16))[2:].zfill(32)[6:11],2))[2:].zfill(16).upper()
-			self.id_ex.B = hex(int(bin(int(self.if_id.IR,16))[2:].zfill(32)[11:16],2))[2:].zfill(16).upper()
-			self.id_ex.IMM = hex(int(bin(int(self.if_id.IR,16))[2:].zfill(32)[16:],2))[2:].zfill(16).upper()
+			self.id_ex.A = self.registers.R[int(bin(int(self.if_id.IR,16))[2:].zfill(32)[6:11],2)]
+			self.id_ex.B = self.registers.R[int(bin(int(self.if_id.IR,16))[2:].zfill(32)[11:16],2)]
+			self.id_ex.IMM = int(bin(int(self.if_id.IR,16))[2:].zfill(32)[16:],2)
 			self.cascade_if_to_id()
 			return True
 		else:
@@ -92,19 +93,19 @@ class InternalRegisters:
 		if self.id_ex.IR != 0:
 			self.temp_ir = bin(int(self.id_ex.IR,16))[2:].zfill(32)
 			if self.temp_ir[26:32] == '101101': #register-to-register
-				self.ex_mem.ALU = int(self.id_ex.A,16) + int(self.id_ex.B,16)
+				self.ex_mem.ALU = self.id_ex.A + self.id_ex.B
 				print(self.ex_mem.ALU)
 			elif self.temp_ir[0:6] == '011001' or self.temp_ir[0:7] == '001110': #register-to-immediate
-				self.ex_mem.ALU = int(self.id_ex.A,16) + int(self.id_ex.IMM,16)
+				self.ex_mem.ALU = self.id_ex.A + self.id_ex.IMM
 				print('pass reg to imm')
 			elif self.temp_ir[26:32] == '101010': #set
-				if int(self.id_ex.A,16) < int(self.id_ex.B,16):
+				if self.id_ex.A < self.id_ex.B:
 					self.ex_mem.ALU = 1
 				else:
 					self.ex_mem.ALU = 0
 				print('pass set')
 			elif self.temp_ir[0:6] == '110111' or self.temp_ir[0:7] == '111111': #memory reference
-				self.ex_mem.ALU = int(self.id_ex.A,16) + int(self.id_ex.IMM,16)
+				self.ex_mem.ALU = self.id_ex.A + self.id_ex.IMM
 				print('pass memory reference')
 			self.cascade_id_to_ex()
 			return True
