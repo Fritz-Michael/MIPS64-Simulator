@@ -31,11 +31,12 @@ class Pipeline:
 				cycle[0] = 'IF'
 
 			self.cycles.append(cycle)
-		print(self.cycles)
+		print(*self.cycles)
+		print(self.internal_registers.registers.R)
 
 
 if __name__ == '__main__':
-	instructions = ['0043082D']
+	instructions = ['64010003']
 	# a = hex(int(bin(int(instructions[0],16))[2:].zfill(32)[6:11],2))[2:].zfill(16).upper()
 	# print(int(a,16))
 	temp = Pipeline(instructions)

@@ -92,21 +92,21 @@ class InternalRegisters:
 	def execution(self):
 		if self.id_ex.IR != 0:
 			self.temp_ir = bin(int(self.id_ex.IR,16))[2:].zfill(32)
-			if self.temp_ir[26:32] == '101101': #register-to-register
+
+			if self.temp_ir[26:32] == '101101': #DADDU instruction
 				self.ex_mem.ALU = self.id_ex.A + self.id_ex.B
-				print(self.ex_mem.ALU)
-			elif self.temp_ir[0:6] == '011001' or self.temp_ir[0:7] == '001110': #register-to-immediate
+			elif self.temp_ir[0:6] == '011001': #DADDIU instruction
 				self.ex_mem.ALU = self.id_ex.A + self.id_ex.IMM
-				print('pass reg to imm')
-			elif self.temp_ir[26:32] == '101010': #set
+			elif self.temp_ir[0:6] == '001110': #XORI instruction
+				self.ex_mem.ALU = self.id_ex.A ^ self.id_ex.IMM 
+			elif self.temp_ir[26:32] == '101010': #SLT instruction
 				if self.id_ex.A < self.id_ex.B:
 					self.ex_mem.ALU = 1
 				else:
 					self.ex_mem.ALU = 0
-				print('pass set')
-			elif self.temp_ir[0:6] == '110111' or self.temp_ir[0:7] == '111111': #memory reference
+			elif self.temp_ir[0:6] == '110111' or self.temp_ir[0:7] == '111111': #memory reference instructions
 				self.ex_mem.ALU = self.id_ex.A + self.id_ex.IMM
-				print('pass memory reference')
+
 			self.cascade_id_to_ex()
 			return True
 		else:
@@ -115,6 +115,15 @@ class InternalRegisters:
 
 	def memory_access(self):
 		if self.ex_mem.IR != 0:
+			self.temp_ir = bin(int(self.ex_mem.IR,16))[2:].zfill(32)
+
+			if self.temp_ir[0:6] == '110111': #load instruction
+				self.mem_wb.LMD = None #self.memory[self.ex_mem.ALU]
+			elif self.temp_ir[0:6] == '111111': #store instruction
+				#self.memory[self.ex_mem.ALU] = self.ex_mem.B
+				pass
+
+			self.mem_wb.ALU = self.ex_mem.ALU
 			self.cascade_ex_to_mem()
 			return True
 		else:
@@ -123,6 +132,16 @@ class InternalRegisters:
 
 	def writeback(self):
 		if self.mem_wb.IR != 0:
+			self.temp_ir = bin(int(self.mem_wb.IR,16))[2:].zfill(32)
+
+			if self.temp_ir[0:6] == '011001' or self.temp_ir[0:7] == '001110': #register-to-immediate instructions
+				print(int(bin(int(self.temp_ir,16))[2:].zfill(32)[11:16],2))
+				self.registers.R[int(bin(int(self.temp_ir,16))[2:].zfill(32)[11:16],2)] = self.mem_wb.ALU
+			elif self.temp_ir[26:32] == '101101' or self.temp_ir[26:32] == '101010': #register-to-register instructions
+				self.registers.R[int(bin(int(self.temp_ir,16))[2:].zfill(32)[16:21],2)] = self.mem_wb.ALU
+			elif self.temp_ir[0:6] == '110111': #load instruction
+				self.registers.R[int(bin(int(self.temp_ir,16))[2:].zfill(32)[11:16],2)] = self.mem_wb.LMD
+
 			self.cascade_mem_to_wb()
 			return True
 		else:
