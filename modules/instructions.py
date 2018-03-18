@@ -179,6 +179,6 @@ class Opcode:
 
 
 if __name__ == '__main__':
-	instruction = ['BLTZ R1,        L1','NOP','L1: DADDU R1,             R2,              R3']
+	instruction = ['DADDIU R1, R0, #0003']
 	temp = Opcode(instruction)
 	print(temp.get_opcode(instruction[0]))

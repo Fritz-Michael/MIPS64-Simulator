@@ -135,12 +135,11 @@ class InternalRegisters:
 			self.temp_ir = bin(int(self.mem_wb.IR,16))[2:].zfill(32)
 
 			if self.temp_ir[0:6] == '011001' or self.temp_ir[0:7] == '001110': #register-to-immediate instructions
-				print(int(bin(int(self.temp_ir,16))[2:].zfill(32)[11:16],2))
-				self.registers.R[int(bin(int(self.temp_ir,16))[2:].zfill(32)[11:16],2)] = self.mem_wb.ALU
+				self.registers.R[int(self.temp_ir[2:].zfill(32)[11:16],2)] = self.mem_wb.ALU
 			elif self.temp_ir[26:32] == '101101' or self.temp_ir[26:32] == '101010': #register-to-register instructions
-				self.registers.R[int(bin(int(self.temp_ir,16))[2:].zfill(32)[16:21],2)] = self.mem_wb.ALU
+				self.registers.R[int(self.temp_ir[2:].zfill(32)[16:21],2)] = self.mem_wb.ALU
 			elif self.temp_ir[0:6] == '110111': #load instruction
-				self.registers.R[int(bin(int(self.temp_ir,16))[2:].zfill(32)[11:16],2)] = self.mem_wb.LMD
+				self.registers.R[int(self.temp_ir[2:].zfill(32)[11:16],2)] = self.mem_wb.LMD
 
 			self.cascade_mem_to_wb()
 			return True
