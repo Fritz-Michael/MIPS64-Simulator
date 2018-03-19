@@ -42,6 +42,7 @@ class InternalRegisters:
 	def __init__(self, instructions):
 		self.instructions = instructions
 		self.registers = Registers()
+		self.is_compact = False
 		self.if_id = IF_ID()
 		self.id_ex = ID_EX()
 		self.ex_mem = EX_MEM()
@@ -69,17 +70,32 @@ class InternalRegisters:
 		self.wb.IR = self.mem_wb.IR
 
 	def instruction_fetch(self):
+		self.is_compact = False
 		if self.if_id.PC/4 > len(self.instructions)-1:
 			self.if_id.IR = 0
 			return False
 		else:
+			self.temp_ir = bin(int(str(self.if_id.IR),16))[2:].zfill(32)
 			self.if_id.IR = self.instructions[int(self.if_id.PC/4)]
-			self.if_id.PC += 4
-			self.if_id.NPC += 4
+			#if branch instruction
+			if (self.temp_ir[0:6] == '000001' and self.registers.R[int(self.temp_ir[2:].zfill(32)[6:11],2)] < 0) or self.temp_ir[0:6] == '110010':
+				offset = int(self.temp_ir[2:].zfill(32)[16:32],2) << 2
+				self.if_id.PC = offset + self.if_id.NPC
+				self.if_id.NPC = self.if_id.PC
+
+				if self.temp_ir[0:6] == '110010':
+					self.is_compact = True
+			else:
+				self.if_id.NPC += 4
+				self.if_id.PC += 4
 			return True
 
 	def instruction_decode(self):
-		if self.if_id.IR != 0:
+		self.temp_ir = bin(int(str(self.if_id.IR),16))[2:].zfill(32)
+		if self.is_compact:
+			self.id_ex.IR = 0
+			return False
+		elif self.if_id.IR != 0:
 			self.id_ex.A = self.registers.R[int(bin(int(self.if_id.IR,16))[2:].zfill(32)[6:11],2)]
 			self.id_ex.B = self.registers.R[int(bin(int(self.if_id.IR,16))[2:].zfill(32)[11:16],2)]
 			self.id_ex.IMM = int(bin(int(self.if_id.IR,16))[2:].zfill(32)[16:],2)

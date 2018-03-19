@@ -119,7 +119,7 @@ class Opcode:
 		temp = instruction.split(' ')
 		temp1 = [i for i, j in enumerate(self.instructions) if temp[1].lstrip() in j]
 		if len(temp1) > 1:
-			offset = temp1[1] + (temp1[0]+1)
+			offset = temp1[1] - (temp1[0]+1)
 			return bin(offset)[2:].zfill(26)
 		else:
 			return False
