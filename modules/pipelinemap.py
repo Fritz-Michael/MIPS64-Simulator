@@ -27,12 +27,10 @@ class Pipeline:
 			if self.internal_registers.instruction_fetch():
 				cycle[0] = 'IF'
 			self.cycles.append(cycle)
-		print(*self.cycles)
-		print(self.internal_registers.registers.R)
 
 
 if __name__ == '__main__':
-	instructions = ['BC L1','DADDU R1, R2, R3','DADDU R4, R5, R6', 'L1: DADDIU R7, R8, #0003']
+	instructions = ['DADDU R1, R2, R3','DADDU R4, R1, R3']
 	opcode = Opcode(instructions)
 	ins = list(map(lambda x: opcode.get_opcode(x),instructions))
 	temp = Pipeline(ins)

@@ -22,6 +22,7 @@ class EX_MEM:
 		self.IR = 0
 		self.ALU = 0
 		self.COND = 0
+		self.NPC = 0
 
 class MEM_WB:
 
@@ -43,6 +44,8 @@ class InternalRegisters:
 		self.instructions = instructions
 		self.registers = Registers()
 		self.is_compact = False
+		self.is_forward = False
+		self.is_stall = False
 		self.if_id = IF_ID()
 		self.id_ex = ID_EX()
 		self.ex_mem = EX_MEM()
@@ -61,6 +64,7 @@ class InternalRegisters:
 
 	def cascade_id_to_ex(self):
 		self.ex_mem.IR = self.id_ex.IR
+		self.ex_mem.NPC = self.id_ex.NPC
 
 	def cascade_ex_to_mem(self):
 		self.mem_wb.IR = self.ex_mem.IR
@@ -68,6 +72,76 @@ class InternalRegisters:
 
 	def cascade_mem_to_wb(self):
 		self.wb.IR = self.mem_wb.IR
+
+	def check_instruction(self, opcode):
+		if opcode[26:32] == '101101' or opcode[26:32] == '101010': #register-to-register
+			return 'Register'
+		elif opcode[0:6] == '011001' or opcode[0:6] == '001110': #DADDIU instruction
+			return 'Immediate'
+		elif opcode[0:6] == '110111': #ld instruction
+			return 'Load'
+		elif opcode[0:6] == '111111': #sd instruction
+			return 'Store'
+
+	def check_forwarding(self, current_opcode, next_opcode):
+		self.is_stall = False
+		self.is_forward = False
+
+		if self.check_instruction(current_opcode) == 'Register':
+			if self.check_instruction(next_opcode) == 'Register':
+				
+				if current_opcode[16:21] == next_opcode[6:11] or current_opcode[16:21] == next_opcode[11:16]:
+					self.is_forward = True
+				else:
+					self.is_forward = False
+			elif self.check_instruction(next_opcode) == 'Immediate':
+				if current_opcode[16:21] == next_opcode[6:11]:
+					self.is_forward = True
+				else:
+					self.is_forward = False
+			elif self.check_instruction(next_opcode) == 'Store':
+				if current_opcode[16:21] == next_opcode[11:16]:
+					self.is_forward = True
+				else:
+					self.is_forward = False
+
+		elif self.check_instruction(current_opcode) == 'Immediate':
+			if self.check_instruction(next_opcode) == 'Register':
+				if current_opcode[11:16] == next_opcode[6:11] or current_opcode[11:16] == next_opcode[11:16]:
+					self.is_forward = True
+				else:
+					self.is_forward = False
+			elif self.check_instruction(next_opcode) == 'Immediate':
+				if current_opcode[11:16] == next_opcode[11:16]:
+					self.is_forward = True
+				else:
+					self.is_forward = False
+			elif self.check_instruction(next_opcode) == 'Store':
+				if current_opcode[11:16] == next_opcode[11:16]:
+					self.is_forward = True
+				else:
+					self.is_forward = False
+
+		elif self.check_instruction(current_opcode) == 'Load':
+			if self.check_instruction(next_opcode) == 'Register':
+				if current_opcode[11:16] == next_opcode[6:11] or current_opcode[11:16] == next_opcode[11:16]:
+					self.is_stall = True
+				else:
+					self.is_stall = False
+			elif self.check_instruction(next_opcode) == 'Immediate':
+				if current_opcode[11:16] == next_opcode[11:16]:
+					self.is_stall = True
+				else:
+					self.is_stall = False
+			elif self.check_instruction(next_opcode) == 'Store':
+				if current_opcode[11:16] == next_opcode[11:16]:
+					self.is_stall = True
+				else:
+					self.is_stall = False
+
+		else:
+			self.is_forward = False
+			self.is_stall = False
 
 	def instruction_fetch(self):
 		self.is_compact = False
@@ -106,8 +180,16 @@ class InternalRegisters:
 			return False
 
 	def execution(self):
+		self.is_forward = False
+		self.is_stall = False
+
 		if self.id_ex.IR != 0:
 			self.temp_ir = bin(int(self.id_ex.IR,16))[2:].zfill(32)
+			print(self.id_ex.NPC/4,len(self.instructions)-1)
+			if self.id_ex.NPC/4 <= len(self.instructions)-1:
+				self.next_ir = self.instructions[int(self.id_ex.NPC/4)]
+				self.next_ir = bin(int(self.next_ir,16))[2:].zfill(32)
+				self.check_forwarding(self.temp_ir,self.next_ir)
 
 			if self.temp_ir[26:32] == '101101': #DADDU instruction
 				self.ex_mem.ALU = self.id_ex.A + self.id_ex.B
