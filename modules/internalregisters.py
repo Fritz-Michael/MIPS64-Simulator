@@ -100,7 +100,12 @@ class InternalRegisters:
 				else:
 					self.is_forward = False
 			elif self.check_instruction(next_opcode) == 'Store':
-				if current_opcode[16:21] == next_opcode[11:16]:
+				if current_opcode[16:21] == next_opcode[11:16] or current_opcode[16:21] == next_opcode[6:11]:
+					self.is_forward = True
+				else:
+					self.is_forward = False
+			elif self.check_instruction(next_opcode) == 'Load':
+				if current_opcode[16:21] == next_opcode[6:11]:
 					self.is_forward = True
 				else:
 					self.is_forward = False
@@ -117,7 +122,12 @@ class InternalRegisters:
 				else:
 					self.is_forward = False
 			elif self.check_instruction(next_opcode) == 'Store':
-				if current_opcode[11:16] == next_opcode[11:16]:
+				if current_opcode[11:16] == next_opcode[11:16] or current_opcode[11:16] == next_opcode[6:11]:
+					self.is_forward = True
+				else:
+					self.is_forward = False
+			elif self.check_instruction(next_opcode) == 'Load':
+				if current_opcode[11:16] == next_opcode[6:11]:
 					self.is_forward = True
 				else:
 					self.is_forward = False
@@ -134,7 +144,12 @@ class InternalRegisters:
 				else:
 					self.is_stall = False
 			elif self.check_instruction(next_opcode) == 'Store':
-				if current_opcode[11:16] == next_opcode[11:16]:
+				if current_opcode[11:16] == next_opcode[11:16] or current_opcode[11:16] == next_opcode[6:11]:
+					self.is_stall = True
+				else:
+					self.is_stall = False
+			elif self.check_instruction(next_opcode) == 'Load':
+				if current_opcode[11:16] == next_opcode[6:11]:
 					self.is_stall = True
 				else:
 					self.is_stall = False
@@ -142,6 +157,49 @@ class InternalRegisters:
 		else:
 			self.is_forward = False
 			self.is_stall = False
+
+	def do_forwarding(self, current_opcode, previous_opcode):
+		if self.check_instruction(current_opcode) == 'Register':
+			if self.check_instruction(previous_opcode) == 'Register':
+				
+				if previous_opcode[16:21] == current_opcode[6:11]:
+					self.id_ex.A = self.id_ex.ALU
+				elif previous_opcode[16:21] == current_opcode[11:16]:
+					self.id_ex.B = self.id_ex.ALU
+			elif self.check_instruction(previous_opcode) == 'Immediate':
+				if previous_opcode[11:16] == current_opcode[6:11]:
+					self.id_ex.A = self.id_ex.ALU
+				elif previous_opcode[11:16] == current_opcode[11:16]::
+					self.id_ex.B = self.id_ex.ALU
+
+		elif self.check_instruction(current_opcode) == 'Immediate':
+			if self.check_instruction(previous_opcode) == 'Register':
+				if previous_opcode[16:21] == current_opcode[6:11]:
+					self.id_ex.A = self.id_ex.ALU
+			elif self.check_instruction(previous_opcode) == 'Immediate':
+				if previous_opcode[11:16] == current_opcode[6:11]:
+					self.id_ex.A = self.id_ex.ALU
+
+		elif self.check_instruction(current_opcode) == 'Store':
+			if self.check_instruction(previous_opcode) == 'Register':
+				if previous_opcode[16:21] == current_opcode[6:11]:
+					self.id_ex.A = self.id_ex.ALU
+				elif previous_opcode[16:21] == current_opcode[11:16]:
+					self.id_ex.B = self.id_ex.ALU
+			elif self.check_instruction(previous_opcode) == 'Immediate':
+				if previous_opcode[11:16] == current_opcode[6:11]:
+					self.id_ex.A = self.id_ex.ALU
+				elif previous_opcode[11:16] == current_opcode[11:16]:
+					self.id_ex.B = self.id_ex.ALU
+
+		elif self.check_instruction(current_opcode) == 'Load':
+			if self.check_instruction(previous_opcode) == 'Register':
+				if previous_opcode[16:21] == current_opcode[6:11]:
+					self.id_ex.A = self.id_ex.ALU
+			elif self.check_instruction(previous_opcode) == 'Immediate':
+				if previous_opcode[11:16] == current_opcode[6:11]:
+					self.id_ex.A = self.id_ex.ALU
+
 
 	def instruction_fetch(self):
 		self.is_compact = False
@@ -185,11 +243,6 @@ class InternalRegisters:
 
 		if self.id_ex.IR != 0:
 			self.temp_ir = bin(int(self.id_ex.IR,16))[2:].zfill(32)
-			print(self.id_ex.NPC/4,len(self.instructions)-1)
-			if self.id_ex.NPC/4 <= len(self.instructions)-1:
-				self.next_ir = self.instructions[int(self.id_ex.NPC/4)]
-				self.next_ir = bin(int(self.next_ir,16))[2:].zfill(32)
-				self.check_forwarding(self.temp_ir,self.next_ir)
 
 			if self.temp_ir[26:32] == '101101': #DADDU instruction
 				self.ex_mem.ALU = self.id_ex.A + self.id_ex.B
@@ -205,6 +258,11 @@ class InternalRegisters:
 			elif self.temp_ir[0:6] == '110111' or self.temp_ir[0:7] == '111111': #memory reference instructions
 				self.ex_mem.ALU = self.id_ex.A + self.id_ex.IMM
 
+			if self.id_ex.NPC/4 <= len(self.instructions)-1:
+				self.next_ir = self.instructions[int(self.id_ex.NPC/4)]
+				self.next_ir = bin(int(self.next_ir,16))[2:].zfill(32)
+				self.check_forwarding(self.temp_ir,self.next_ir)
+			
 			self.cascade_id_to_ex()
 			return True
 		else:

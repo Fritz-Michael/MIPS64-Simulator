@@ -27,6 +27,7 @@ class Pipeline:
 			if self.internal_registers.instruction_fetch():
 				cycle[0] = 'IF'
 			self.cycles.append(cycle)
+		print(self.cycles)
 
 
 if __name__ == '__main__':
