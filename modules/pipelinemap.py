@@ -31,8 +31,10 @@ class Pipeline:
 
 
 if __name__ == '__main__':
-	instructions = ['DADDU R1, R2, R3','DADDU R4, R1, R3']
+	instructions = ['DADDIU R1, R0, #0003','DADDIU R2, R0, #0003','DADDU R3, R1, R2']
 	opcode = Opcode(instructions)
 	ins = list(map(lambda x: opcode.get_opcode(x),instructions))
+	print(ins)
 	temp = Pipeline(ins)
 	temp.get_pipeline()
+	print(temp.internal_registers.registers.R)

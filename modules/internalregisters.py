@@ -117,7 +117,7 @@ class InternalRegisters:
 				else:
 					self.is_forward = False
 			elif self.check_instruction(next_opcode) == 'Immediate':
-				if current_opcode[11:16] == next_opcode[11:16]:
+				if current_opcode[11:16] == next_opcode[6:11]:
 					self.is_forward = True
 				else:
 					self.is_forward = False
@@ -163,34 +163,34 @@ class InternalRegisters:
 			if self.check_instruction(previous_opcode) == 'Register':
 				
 				if previous_opcode[16:21] == current_opcode[6:11]:
-					self.id_ex.A = self.id_ex.ALU
+					self.id_ex.A = self.ex_mem.ALU
 				elif previous_opcode[16:21] == current_opcode[11:16]:
-					self.id_ex.B = self.id_ex.ALU
+					self.id_ex.B = self.ex_mem.ALU
 			elif self.check_instruction(previous_opcode) == 'Immediate':
 				if previous_opcode[11:16] == current_opcode[6:11]:
-					self.id_ex.A = self.id_ex.ALU
-				elif previous_opcode[11:16] == current_opcode[11:16]::
-					self.id_ex.B = self.id_ex.ALU
+					self.id_ex.A = self.ex_mem.ALU
+				elif previous_opcode[11:16] == current_opcode[11:16]:
+					self.id_ex.B = self.ex_mem.ALU
 
 		elif self.check_instruction(current_opcode) == 'Immediate':
 			if self.check_instruction(previous_opcode) == 'Register':
 				if previous_opcode[16:21] == current_opcode[6:11]:
-					self.id_ex.A = self.id_ex.ALU
+					self.id_ex.A = self.ex_mem.ALU
 			elif self.check_instruction(previous_opcode) == 'Immediate':
 				if previous_opcode[11:16] == current_opcode[6:11]:
-					self.id_ex.A = self.id_ex.ALU
+					self.id_ex.A = self.ex_mem.ALU
 
 		elif self.check_instruction(current_opcode) == 'Store':
 			if self.check_instruction(previous_opcode) == 'Register':
 				if previous_opcode[16:21] == current_opcode[6:11]:
-					self.id_ex.A = self.id_ex.ALU
+					self.id_ex.A = self.ex_mem.ALU
 				elif previous_opcode[16:21] == current_opcode[11:16]:
-					self.id_ex.B = self.id_ex.ALU
+					self.id_ex.B = self.ex_mem.ALU
 			elif self.check_instruction(previous_opcode) == 'Immediate':
 				if previous_opcode[11:16] == current_opcode[6:11]:
-					self.id_ex.A = self.id_ex.ALU
+					self.id_ex.A = self.ex_mem.ALU
 				elif previous_opcode[11:16] == current_opcode[11:16]:
-					self.id_ex.B = self.id_ex.ALU
+					self.id_ex.B = self.ex_mem.ALU
 
 		elif self.check_instruction(current_opcode) == 'Load':
 			if self.check_instruction(previous_opcode) == 'Register':
@@ -199,6 +199,10 @@ class InternalRegisters:
 			elif self.check_instruction(previous_opcode) == 'Immediate':
 				if previous_opcode[11:16] == current_opcode[6:11]:
 					self.id_ex.A = self.id_ex.ALU
+
+	def execution_redecode(self):
+		self.id_ex.A = self.registers.R[int(bin(int(self.id_ex.IR,16))[2:].zfill(32)[6:11],2)]
+		self.id_ex.B = self.registers.R[int(bin(int(self.id_ex.IR,16))[2:].zfill(32)[11:16],2)]		
 
 
 	def instruction_fetch(self):
@@ -238,25 +242,49 @@ class InternalRegisters:
 			return False
 
 	def execution(self):
-		self.is_forward = False
-		self.is_stall = False
-
 		if self.id_ex.IR != 0:
+			self.execution_redecode()
 			self.temp_ir = bin(int(self.id_ex.IR,16))[2:].zfill(32)
+			self.prev_ir = self.instructions[int((self.id_ex.NPC-8)/4)]
+			self.prev_ir = bin(int(self.prev_ir,16))[2:].zfill(32)	
 
 			if self.temp_ir[26:32] == '101101': #DADDU instruction
-				self.ex_mem.ALU = self.id_ex.A + self.id_ex.B
-			elif self.temp_ir[0:6] == '011001': #DADDIU instruction
-				self.ex_mem.ALU = self.id_ex.A + self.id_ex.IMM
-			elif self.temp_ir[0:6] == '001110': #XORI instruction
-				self.ex_mem.ALU = self.id_ex.A ^ self.id_ex.IMM 
-			elif self.temp_ir[26:32] == '101010': #SLT instruction
-				if self.id_ex.A < self.id_ex.B:
-					self.ex_mem.ALU = 1
+				if not self.is_forward:
+					self.ex_mem.ALU = self.id_ex.A + self.id_ex.B
 				else:
-					self.ex_mem.ALU = 0
+					self.do_forwarding(self.temp_ir,self.prev_ir)
+					print(self.id_ex.A,self.id_ex.B)
+					self.ex_mem.ALU = self.id_ex.A + self.id_ex.B
+			elif self.temp_ir[0:6] == '011001': #DADDIU instruction
+				if not self.is_forward:
+					self.ex_mem.ALU = self.id_ex.A + self.id_ex.IMM
+				else:
+					self.do_forwarding(self.temp_ir,self.prev_ir)
+					self.ex_mem.ALU = self.id_ex.A + self.id_ex.IMM
+			elif self.temp_ir[0:6] == '001110': #XORI instruction
+				if not self.is_forward:
+					self.ex_mem.ALU = self.id_ex.A ^ self.id_ex.IMM
+				else:
+					self.do_forwarding(self.temp_ir,self.prev_ir)
+					self.ex_mem.ALU = self.id_ex.A ^ self.id_ex.IMM
+			elif self.temp_ir[26:32] == '101010': #SLT instruction
+				if not self.is_forward:
+					if self.id_ex.A < self.id_ex.B:
+						self.ex_mem.ALU = 1
+					else:
+						self.ex_mem.ALU = 0
+				else:
+					self.do_forwarding(self.temp_ir,self.prev_ir)
+					if self.id_ex.A < self.id_ex.B:
+						self.ex_mem.ALU = 1
+					else:
+						self.ex_mem.ALU = 0
 			elif self.temp_ir[0:6] == '110111' or self.temp_ir[0:7] == '111111': #memory reference instructions
-				self.ex_mem.ALU = self.id_ex.A + self.id_ex.IMM
+				if not self.is_forward:
+					self.ex_mem.ALU = self.id_ex.A + self.id_ex.IMM
+				else:
+					self.do_forwarding(self.temp_ir,self.prev_ir)
+					self.ex_mem.ALU = self.id_ex.A + self.id_ex.IMM
 
 			if self.id_ex.NPC/4 <= len(self.instructions)-1:
 				self.next_ir = self.instructions[int(self.id_ex.NPC/4)]
