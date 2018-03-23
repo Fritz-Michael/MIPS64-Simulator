@@ -231,7 +231,7 @@ class InternalRegisters:
 		if self.is_compact:
 			self.id_ex.IR = 0
 			return False
-		elif self.if_id.IR != 0:
+		elif self.if_id.IR != 0 and not self.is_compact:
 			self.id_ex.A = self.registers.R[int(bin(int(self.if_id.IR,16))[2:].zfill(32)[6:11],2)]
 			self.id_ex.B = self.registers.R[int(bin(int(self.if_id.IR,16))[2:].zfill(32)[11:16],2)]
 			self.id_ex.IMM = int(bin(int(self.if_id.IR,16))[2:].zfill(32)[16:],2)
