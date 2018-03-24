@@ -1,14 +1,53 @@
 from PyQt5 import QtWidgets, QtCore, Qt
 import sys
+import os
 
 class MainWindow(QtWidgets.QMainWindow):
 
 	def __init__(self,parent=None):
 		super(MainWindow, self).__init__(parent)
-		self.resize(1366,768)
+		super().setWindowTitle("microMips Simulator")
+		self.resize(1280,720)
+
+		menuBar = self.menuBar()
+		fileMenu = menuBar.addMenu('File')
+		editMenu = menuBar.addMenu('Edit')
+		viewMenu = menuBar.addMenu('View')
+		searchMenu = menuBar.addMenu('Search')
+		toolsMenu = menuBar.addMenu('Tools')
+		helpMenu = menuBar.addMenu('Help')
+
+		#Add submenus
+		save_action = QtWidgets.QAction('Save', self)
+		open_action = QtWidgets.QAction('Open', self)
+
+		#Link functions to action
+		save_action.triggered.connect(self.save_text)
+		open_action.triggered.connect(self.open_text)
+
+		#Add actions to fileMenu
+		fileMenu.addAction(open_action)
+		fileMenu.addAction(save_action)
+
 		self.widget_frame = WindowFrame(Tabs)
 		self.setCentralWidget(self.widget_frame)
 
+
+	def save_text(self):
+		filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', os.getenv('HOME'))
+		with open(filename[0], 'w') as f:
+			my_text = main.widget_frame.layout.input_tabs.layout.text.toPlainText()
+			f.write(my_text)
+
+	def open_text(self):
+		filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File', os.getenv('HOME'))
+		with open(filename[0], 'r') as f:
+			file_text = f.read()
+			main.widget_frame.layout.input_tabs.layout.text.clear()
+			main.widget_frame.layout.input_tabs.layout.text.insertPlainText(file_text)
+
+	def clear_text(self):
+		self.text.clear()
 
 class WindowFrame(QtWidgets.QWidget):
 
@@ -20,18 +59,20 @@ class WindowFrame(QtWidgets.QWidget):
 			self.layout = layout(self,extra)
 		self.setLayout(self.layout)
 
-
 class InputView(QtWidgets.QGridLayout):
 
 	def __init__(self,frame):
 		super().__init__()
-		self.frame = frame
+		self.text = QtWidgets.QPlainTextEdit()
+		self.one_cycle = QtWidgets.QPushButton("Execute 1 cycle")
+		self.full_cycle = QtWidgets.QPushButton("Full Execution")
 		self.init_ui()
 
 	def init_ui(self):
-		self.input_label = QtWidgets.QLabel("Input")
-		self.addWidget(self.input_label, 1, 1, 1, 1)
-
+		#self.input_label = QtWidgets.QLabel("Input")
+		self.addWidget(self.text, 0, 0, 1, 5)
+		self.addWidget(self.one_cycle, 1, 0, 1, 1)
+		self.addWidget(self.full_cycle, 1, 1, 1, 1)
 
 class OpcodeView(QtWidgets.QGridLayout):
 
@@ -78,8 +119,8 @@ class Tabs(QtWidgets.QGridLayout):
 		self.opcode_tabs = WindowFrame(OpcodeView)
 		self.memory_tabs = WindowFrame(MemoryAndRegisterView)
 		self.pipeline_tabs = WindowFrame(PipelineMapView)
-		self.tabs.addTab(self.opcode_tabs,"Opcode")
 		self.tabs.addTab(self.input_tabs,"Input")
+		self.tabs.addTab(self.opcode_tabs,"Opcode")
 		self.tabs.addTab(self.memory_tabs,"Memory and Registers")
 		self.tabs.addTab(self.pipeline_tabs,"Pipeline Map")
 		self.addWidget(self.tabs)
