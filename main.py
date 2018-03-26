@@ -13,13 +13,14 @@ class MainWindow(QtWidgets.QMainWindow):
 		fileMenu = menuBar.addMenu('File')
 		editMenu = menuBar.addMenu('Edit')
 		viewMenu = menuBar.addMenu('View')
-		searchMenu = menuBar.addMenu('Search')
-		toolsMenu = menuBar.addMenu('Tools')
+		runMenu = menuBar.addMenu('Run')
 		helpMenu = menuBar.addMenu('Help')
 
 		#Add submenus
 		save_action = QtWidgets.QAction('Save', self)
 		open_action = QtWidgets.QAction('Open', self)
+		oneCyc_action = QtWidgets.QAction('Execute 1 cycle', self)
+		fullCyc_action = QtWidgets.QAction('Execute all possible cycles', self)
 
 		#Link functions to action
 		save_action.triggered.connect(self.save_text)
@@ -28,6 +29,8 @@ class MainWindow(QtWidgets.QMainWindow):
 		#Add actions to fileMenu
 		fileMenu.addAction(open_action)
 		fileMenu.addAction(save_action)
+		runMenu.addAction(oneCyc_action)
+		runMenu.addAction(fullCyc_action)
 
 		self.widget_frame = WindowFrame(Tabs)
 		self.setCentralWidget(self.widget_frame)
@@ -64,15 +67,15 @@ class InputView(QtWidgets.QGridLayout):
 	def __init__(self,frame):
 		super().__init__()
 		self.text = QtWidgets.QPlainTextEdit()
-		self.one_cycle = QtWidgets.QPushButton("Execute 1 cycle")
-		self.full_cycle = QtWidgets.QPushButton("Full Execution")
+		self.load = QtWidgets.QPushButton("Load")
+		self.reset = QtWidgets.QPushButton("Reset")
 		self.init_ui()
 
 	def init_ui(self):
 		#self.input_label = QtWidgets.QLabel("Input")
-		self.addWidget(self.text, 0, 0, 1, 5)
-		self.addWidget(self.one_cycle, 1, 0, 1, 1)
-		self.addWidget(self.full_cycle, 1, 1, 1, 1)
+		self.addWidget(self.text, 0, 0, 1, 2)
+		self.addWidget(self.load, 1, 0, 1, 1)
+		self.addWidget(self.reset, 1, 1, 1, 1)
 
 class OpcodeView(QtWidgets.QGridLayout):
 
