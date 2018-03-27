@@ -10,7 +10,6 @@ class Pipeline:
 
 	def get_pipeline(self):
 		end = False
-
 		while not end:
 			cycle = [None,None,None,None,None]
 
@@ -31,7 +30,7 @@ class Pipeline:
 
 
 if __name__ == '__main__':
-	instructions = ['BC L1','DADDIU R2, R0, #0003','L1: DADDU R3, R1, R2']
+	instructions = ['DADDU R1, R0, R3', 'BLTZ R1, L1', 'DADDU R2, R0, R3', 'L1: DADDU R3, R4, R5']
 	opcode = Opcode(instructions)
 	ins = list(map(lambda x: opcode.get_opcode(x),instructions))
 	print(ins)

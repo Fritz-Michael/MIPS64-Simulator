@@ -46,6 +46,7 @@ class InternalRegisters:
 		self.is_compact = False
 		self.is_forward = False
 		self.is_stall = False
+		self.stall_jump = False
 		self.if_id = IF_ID()
 		self.id_ex = ID_EX()
 		self.ex_mem = EX_MEM()
@@ -82,6 +83,8 @@ class InternalRegisters:
 			return 'Load'
 		elif opcode[0:6] == '111111': #sd instruction
 			return 'Store'
+		elif opcode[0:6] == '000001': #bltz instruction
+			return 'Jump'
 
 	def check_forwarding(self, current_opcode, next_opcode):
 		self.is_stall = False
@@ -109,6 +112,11 @@ class InternalRegisters:
 					self.is_forward = True
 				else:
 					self.is_forward = False
+			elif self.check_instruction(next_opcode) == 'Jump':
+				if current_opcode[16:21] == next_opcode[6:11]:
+					self.stall_jump = True
+				else:
+					self.stall_jump = False
 
 		elif self.check_instruction(current_opcode) == 'Immediate':
 			if self.check_instruction(next_opcode) == 'Register':
@@ -131,6 +139,11 @@ class InternalRegisters:
 					self.is_forward = True
 				else:
 					self.is_forward = False
+			elif self.check_instruction(next_opcode) == 'Jump':
+				if current_opcode[11:16] == next_opcode[6:11]:
+					self.stall_jump = True
+				else:
+					self.stall_jump = False
 
 		elif self.check_instruction(current_opcode) == 'Load':
 			if self.check_instruction(next_opcode) == 'Register':
@@ -153,6 +166,14 @@ class InternalRegisters:
 					self.is_stall = True
 				else:
 					self.is_stall = False
+			elif self.check_instruction(next_opcode) == 'Jump':
+				if current_opcode[11:16] == next_opcode[6:11]:
+					self.stall_jump = True
+					self.is_stall = True
+				else:
+					self.stall_jump = False
+					self.is_stall = False
+
 
 		else:
 			self.is_forward = False
@@ -211,27 +232,34 @@ class InternalRegisters:
 			self.if_id.IR = 0
 			return False
 		else:
-			self.temp_ir = bin(int(str(self.if_id.IR),16))[2:].zfill(32)
-			self.if_id.IR = self.instructions[int(self.if_id.PC/4)]
-			#if branch instruction
-			if (self.temp_ir[0:6] == '000001' and self.registers.R[int(self.temp_ir[2:].zfill(32)[6:11],2)] < 0) or self.temp_ir[0:6] == '110010':
-				offset = int(self.temp_ir[2:].zfill(32)[16:32],2) << 2
-				self.if_id.PC = offset + self.if_id.NPC
-				self.if_id.NPC = self.if_id.PC
+			if not self.is_stall and not self.stall_jump:
+				self.temp_ir = bin(int(str(self.if_id.IR),16))[2:].zfill(32)
+				self.if_id.IR = self.instructions[int(self.if_id.PC/4)]
+				#if branch instruction
+				if (self.temp_ir[0:6] == '000001' and self.registers.R[int(self.temp_ir[2:].zfill(32)[6:11],2)] < 0) or self.temp_ir[0:6] == '110010':
+					offset = int(self.temp_ir[2:].zfill(32)[16:32],2) << 2
+					self.if_id.PC = offset + self.if_id.NPC
+					self.if_id.NPC = self.if_id.PC
 
-				if self.temp_ir[0:6] == '110010':
-					self.is_compact = True
+					if self.temp_ir[0:6] == '110010':
+						self.is_compact = True
+				else:
+					self.if_id.NPC += 4
+					self.if_id.PC += 4
+				return True
 			else:
-				self.if_id.NPC += 4
-				self.if_id.PC += 4
-			return True
+				self.stall_jump = False
+				self.is_stall = False
+				#self.if_id.IR = 0
+				return False
 
 	def instruction_decode(self):
+		print(self.is_compact)
 		self.temp_ir = bin(int(str(self.if_id.IR),16))[2:].zfill(32)
 		if self.is_compact:
 			self.id_ex.IR = 0
 			return False
-		elif self.if_id.IR != 0 and not self.is_compact:
+		elif self.if_id.IR != 0 and not self.is_compact and not self.stall_jump:
 			self.id_ex.A = self.registers.R[int(bin(int(self.if_id.IR,16))[2:].zfill(32)[6:11],2)]
 			self.id_ex.B = self.registers.R[int(bin(int(self.if_id.IR,16))[2:].zfill(32)[11:16],2)]
 			self.id_ex.IMM = int(bin(int(self.if_id.IR,16))[2:].zfill(32)[16:],2)
