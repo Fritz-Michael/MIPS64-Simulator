@@ -236,6 +236,7 @@ class InternalRegisters:
 				self.temp_ir = bin(int(str(self.if_id.IR),16))[2:].zfill(32)
 				self.if_id.IR = self.instructions[int(self.if_id.PC/4)]
 				#if branch instruction
+				print(self.registers.R[1])
 				if (self.temp_ir[0:6] == '000001' and self.registers.R[int(self.temp_ir[2:].zfill(32)[6:11],2)] < 0) or self.temp_ir[0:6] == '110010':
 					offset = int(self.temp_ir[2:].zfill(32)[16:32],2) << 2
 					self.if_id.PC = offset + self.if_id.NPC
@@ -247,19 +248,22 @@ class InternalRegisters:
 					self.if_id.NPC += 4
 					self.if_id.PC += 4
 				return True
-			else:
+			elif self.stall_jump:
 				self.stall_jump = False
+			elif self.is_stall:
 				self.is_stall = False
-				#self.if_id.IR = 0
+			else:
+				# self.stall_jump = False
+				# self.is_stall = False
+				self.if_id.IR = 0
 				return False
 
 	def instruction_decode(self):
-		print(self.is_compact)
 		self.temp_ir = bin(int(str(self.if_id.IR),16))[2:].zfill(32)
 		if self.is_compact:
 			self.id_ex.IR = 0
 			return False
-		elif self.if_id.IR != 0 and not self.is_compact and not self.stall_jump:
+		elif self.if_id.IR != 0 and not self.is_compact and not self.stall_jump and not self.is_stall:
 			self.id_ex.A = self.registers.R[int(bin(int(self.if_id.IR,16))[2:].zfill(32)[6:11],2)]
 			self.id_ex.B = self.registers.R[int(bin(int(self.if_id.IR,16))[2:].zfill(32)[11:16],2)]
 			self.id_ex.IMM = int(bin(int(self.if_id.IR,16))[2:].zfill(32)[16:],2)
@@ -330,7 +334,7 @@ class InternalRegisters:
 			self.temp_ir = bin(int(self.ex_mem.IR,16))[2:].zfill(32)
 
 			if self.temp_ir[0:6] == '110111': #load instruction
-				self.mem_wb.LMD = None #self.memory[self.ex_mem.ALU]
+				self.mem_wb.LMD = 0 #self.memory[self.ex_mem.ALU]
 			elif self.temp_ir[0:6] == '111111': #store instruction
 				#self.memory[self.ex_mem.ALU] = self.ex_mem.B
 				pass

@@ -30,7 +30,7 @@ class Pipeline:
 
 
 if __name__ == '__main__':
-	instructions = ['DADDU R1, R0, R3', 'BLTZ R1, L1', 'DADDU R2, R0, R3', 'L1: DADDU R3, R4, R5']
+	instructions = ['LD R1, 1000(R0)', 'BLTZ R1, L1', 'DADDU R2, R0, R3', 'L1: DADDU R3, R4, R5']
 	opcode = Opcode(instructions)
 	ins = list(map(lambda x: opcode.get_opcode(x),instructions))
 	print(ins)
