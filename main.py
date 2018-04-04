@@ -82,11 +82,24 @@ class OpcodeView(QtWidgets.QGridLayout):
 	def __init__(self,frame):
 		super().__init__()
 		self.frame = frame
+		self.instructionTable = QtWidgets.QTableWidget()
+		self.latestRow = 0
 		self.init_ui()
 
 	def init_ui(self):
 		self.opcode_label = QtWidgets.QLabel("Opcode")
-		self.addWidget(self.opcode_label, 1, 1, 1, 1)
+		#Change row count to instruction count
+		self.instructionTable.setRowCount(5)
+		self.instructionTable.setColumnCount(8)
+		self.instructionTable.setItem(0,0,QtWidgets.QTableWidgetItem("Instructions"))
+		self.instructionTable.setItem(0,1,QtWidgets.QTableWidgetItem("B: 31-26"))
+		self.instructionTable.setItem(0,2,QtWidgets.QTableWidgetItem("B: 25-21"))
+		self.instructionTable.setItem(0,3,QtWidgets.QTableWidgetItem("B: 20-16"))
+		self.instructionTable.setItem(0,4,QtWidgets.QTableWidgetItem("B: 15-11"))
+		self.instructionTable.setItem(0,5,QtWidgets.QTableWidgetItem("B: 10-6"))
+		self.instructionTable.setItem(0,6,QtWidgets.QTableWidgetItem("B: 5-0"))
+		self.instructionTable.setItem(0,7,QtWidgets.QTableWidgetItem("HEX"))
+		self.addWidget(self.instructionTable, 1, 1, 1, 1)
 
 
 class MemoryAndRegisterView(QtWidgets.QGridLayout):
