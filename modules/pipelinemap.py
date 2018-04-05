@@ -26,11 +26,12 @@ class Pipeline:
 			if self.internal_registers.instruction_fetch():
 				cycle[0] = 'IF'
 			self.cycles.append(cycle)
-		print(self.cycles)
+		#print(self.cycles)
+		#print(self.internal_registers.memory.memory[0]['0x7'])
 
 
 if __name__ == '__main__':
-	instructions = ['LD R1, 1000(R0)', 'BLTZ R1, L1', 'DADDU R2, R0, R3', 'L1: DADDU R3, R4, R5']
+	instructions = ['DADDIU R1, R0, #0001','SD R1, 0000(R0)', 'LD R2, 0000(R0)']
 	opcode = Opcode(instructions)
 	ins = list(map(lambda x: opcode.get_opcode(x),instructions))
 	print(ins)

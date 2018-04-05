@@ -1,4 +1,5 @@
 from registers import *
+from memory import *
 
 class IF_ID:
 	
@@ -23,6 +24,7 @@ class EX_MEM:
 		self.ALU = 0
 		self.COND = 0
 		self.NPC = 0
+		self.B = 0
 
 class MEM_WB:
 
@@ -43,6 +45,7 @@ class InternalRegisters:
 	def __init__(self, instructions):
 		self.instructions = instructions
 		self.registers = Registers()
+		self.memory = Memory()
 		self.is_compact = False
 		self.is_forward = False
 		self.is_stall = False
@@ -66,6 +69,7 @@ class InternalRegisters:
 	def cascade_id_to_ex(self):
 		self.ex_mem.IR = self.id_ex.IR
 		self.ex_mem.NPC = self.id_ex.NPC
+		self.ex_mem.B = self.id_ex.B
 
 	def cascade_ex_to_mem(self):
 		self.mem_wb.IR = self.ex_mem.IR
@@ -236,7 +240,6 @@ class InternalRegisters:
 				self.temp_ir = bin(int(str(self.if_id.IR),16))[2:].zfill(32)
 				self.if_id.IR = self.instructions[int(self.if_id.PC/4)]
 				#if branch instruction
-				print(self.registers.R[1])
 				if (self.temp_ir[0:6] == '000001' and self.registers.R[int(self.temp_ir[2:].zfill(32)[6:11],2)] < 0) or self.temp_ir[0:6] == '110010':
 					offset = int(self.temp_ir[2:].zfill(32)[16:32],2) << 2
 					self.if_id.PC = offset + self.if_id.NPC
@@ -285,7 +288,6 @@ class InternalRegisters:
 					self.ex_mem.ALU = self.id_ex.A + self.id_ex.B
 				else:
 					self.do_forwarding(self.temp_ir,self.prev_ir)
-					print(self.id_ex.A,self.id_ex.B)
 					self.ex_mem.ALU = self.id_ex.A + self.id_ex.B
 			elif self.temp_ir[0:6] == '011001': #DADDIU instruction
 				if not self.is_forward:
@@ -311,7 +313,7 @@ class InternalRegisters:
 						self.ex_mem.ALU = 1
 					else:
 						self.ex_mem.ALU = 0
-			elif self.temp_ir[0:6] == '110111' or self.temp_ir[0:7] == '111111': #memory reference instructions
+			elif self.temp_ir[0:6] == '110111' or self.temp_ir[0:6] == '111111': #memory reference instructions
 				if not self.is_forward:
 					self.ex_mem.ALU = self.id_ex.A + self.id_ex.IMM
 				else:
@@ -334,10 +336,15 @@ class InternalRegisters:
 			self.temp_ir = bin(int(self.ex_mem.IR,16))[2:].zfill(32)
 
 			if self.temp_ir[0:6] == '110111': #load instruction
-				self.mem_wb.LMD = 0 #self.memory[self.ex_mem.ALU]
+				value = []
+				for x in range(8):
+					value.append(self.memory.memory[0][hex(self.ex_mem.ALU+x)])
+				self.mem_wb.LMD = int('0x' + ''.join(value),16)
 			elif self.temp_ir[0:6] == '111111': #store instruction
-				#self.memory[self.ex_mem.ALU] = self.ex_mem.B
-				pass
+				value = hex(self.ex_mem.B)[2:].zfill(16)
+				value = [value[i:i+2] for i in range(0, len(value), 2)]
+				for x in range(8):
+					self.memory.memory[0][hex(self.ex_mem.ALU+x)] = value[x]
 
 			self.mem_wb.ALU = self.ex_mem.ALU
 			self.cascade_ex_to_mem()
