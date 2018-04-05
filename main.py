@@ -77,53 +77,72 @@ class InputView(QtWidgets.QGridLayout):
 		self.addWidget(self.load, 1, 0, 1, 1)
 		self.addWidget(self.reset, 1, 1, 1, 1)
 
-class OpcodeView(QtWidgets.QGridLayout):
+class OutputView(QtWidgets.QGridLayout):
 
 	def __init__(self,frame):
 		super().__init__()
 		self.frame = frame
 		self.instructionTable = QtWidgets.QTableWidget()
+		self.instructionScroll = QtWidgets.QScrollArea()
+		self.pipelineTable = QtWidgets.QTableWidget()
+		self.pipelineScroll = QtWidgets.QScrollArea()
+
 		self.latestRow = 0
-		self.init_ui()
-
-	def init_ui(self):
 		self.opcode_label = QtWidgets.QLabel("Opcode")
+		self.mem_label = QtWidgets.QLabel("Memory")
+		self.pipelineLabel = QtWidgets.QLabel("Pipeline Map")
+		self.init_ui()
+
+	def init_ui(self):
+
 		#Change row count to instruction count
-		self.instructionTable.setRowCount(5)
 		self.instructionTable.setColumnCount(8)
-		self.instructionTable.setItem(0,0,QtWidgets.QTableWidgetItem("Instructions"))
-		self.instructionTable.setItem(0,1,QtWidgets.QTableWidgetItem("B: 31-26"))
-		self.instructionTable.setItem(0,2,QtWidgets.QTableWidgetItem("B: 25-21"))
-		self.instructionTable.setItem(0,3,QtWidgets.QTableWidgetItem("B: 20-16"))
-		self.instructionTable.setItem(0,4,QtWidgets.QTableWidgetItem("B: 15-11"))
-		self.instructionTable.setItem(0,5,QtWidgets.QTableWidgetItem("B: 10-6"))
-		self.instructionTable.setItem(0,6,QtWidgets.QTableWidgetItem("B: 5-0"))
-		self.instructionTable.setItem(0,7,QtWidgets.QTableWidgetItem("HEX"))
-		self.addWidget(self.instructionTable, 1, 1, 1, 1)
+		self.instructionTable.setHorizontalHeaderItem(0,QtWidgets.QTableWidgetItem("Instructions"))
+		self.instructionTable.setHorizontalHeaderItem(1,QtWidgets.QTableWidgetItem("B: 31-26"))
+		self.instructionTable.setHorizontalHeaderItem(2,QtWidgets.QTableWidgetItem("B: 25-21"))
+		self.instructionTable.setHorizontalHeaderItem(3,QtWidgets.QTableWidgetItem("B: 20-16"))
+		self.instructionTable.setHorizontalHeaderItem(4,QtWidgets.QTableWidgetItem("B: 15-11"))
+		self.instructionTable.setHorizontalHeaderItem(5,QtWidgets.QTableWidgetItem("B: 10-6"))
+		self.instructionTable.setHorizontalHeaderItem(6,QtWidgets.QTableWidgetItem("B: 5-0"))
+		self.instructionTable.setHorizontalHeaderItem(7,QtWidgets.QTableWidgetItem("HEX"))
+		self.instructionScroll.setWidget(self.instructionTable)
+		self.instructionScroll.setWidgetResizable(True)
+		self.addWidget(self.opcode_label, 0, 0, 1, 1)
+		self.addWidget(self.instructionScroll, 1, 0, 1, 1)
 
 
-class MemoryAndRegisterView(QtWidgets.QGridLayout):
 
-	def __init__(self,frame):
-		super().__init__()
-		self.frame = frame
-		self.init_ui()
-
-	def init_ui(self):
-		self.memory_label = QtWidgets.QLabel("Memory and register")
-		self.addWidget(self.memory_label, 1, 1, 1, 1)
+		self.pipelineScroll.setWidget(self.pipelineTable)
+		self.pipelineScroll.setWidgetResizable(True)
+		self.addWidget(self.pipelineLabel, 2, 0, 1, 1)
+		self.addWidget(self.pipelineScroll, 3, 0, 1, 1)
 
 
-class PipelineMapView(QtWidgets.QGridLayout):
 
-	def __init__(self,frame):
-		super().__init__()
-		self.frame = frame
-		self.init_ui()
 
-	def init_ui(self):
-		self.pipeline_label = QtWidgets.QLabel("Pipeline")
-		self.addWidget(self.pipeline_label, 1, 1, 1, 1)
+
+# class MemoryAndRegisterView(QtWidgets.QGridLayout):
+#
+# 	def __init__(self,frame):
+# 		super().__init__()
+# 		self.frame = frame
+# 		self.init_ui()
+#
+# 	def init_ui(self):
+# 		self.memory_label = QtWidgets.QLabel("Memory and register")
+# 		self.addWidget(self.memory_label, 1, 1, 1, 1)
+#
+#
+# class PipelineMapView(QtWidgets.QGridLayout):
+#
+# 	def __init__(self,frame):
+# 		super().__init__()
+# 		self.frame = frame
+# 		self.init_ui()
+#
+# 	def init_ui(self):
+# 		self.pipeline_label = QtWidgets.QLabel("Pipeline")
+# 		self.addWidget(self.pipeline_label, 1, 1, 1, 1)
 
 
 class Tabs(QtWidgets.QGridLayout):
@@ -132,13 +151,9 @@ class Tabs(QtWidgets.QGridLayout):
 		super(QtWidgets.QGridLayout, self).__init__(parent)
 		self.tabs = QtWidgets.QTabWidget()
 		self.input_tabs = WindowFrame(InputView)
-		self.opcode_tabs = WindowFrame(OpcodeView)
-		self.memory_tabs = WindowFrame(MemoryAndRegisterView)
-		self.pipeline_tabs = WindowFrame(PipelineMapView)
+		self.output_tabs = WindowFrame(OutputView)
 		self.tabs.addTab(self.input_tabs,"Input")
-		self.tabs.addTab(self.opcode_tabs,"Opcode")
-		self.tabs.addTab(self.memory_tabs,"Memory and Registers")
-		self.tabs.addTab(self.pipeline_tabs,"Pipeline Map")
+		self.tabs.addTab(self.output_tabs,"Output")
 		self.addWidget(self.tabs)
 
 

@@ -3,5 +3,5 @@
 class Memory:
 
     def __init__(self):
-        self.progMemory = []
-        self.dataSegment = []
+        self.memory = [{hex(n): '' for n in range(0,4095)}, #Data Segment
+                       {hex(n): '' for n in range(4096,8192)}] #Prog Memory
