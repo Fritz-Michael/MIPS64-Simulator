@@ -153,23 +153,31 @@ class InternalRegisters:
 			if self.check_instruction(next_opcode) == 'Register':
 				if current_opcode[11:16] == next_opcode[6:11] or current_opcode[11:16] == next_opcode[11:16]:
 					self.is_stall = True
+					self.is_forward = True
 				else:
 					self.is_stall = False
+					self.is_forward = False
 			elif self.check_instruction(next_opcode) == 'Immediate':
 				if current_opcode[11:16] == next_opcode[11:16]:
 					self.is_stall = True
+					self.is_forward = True
 				else:
 					self.is_stall = False
+					self.is_forward = False
 			elif self.check_instruction(next_opcode) == 'Store':
 				if current_opcode[11:16] == next_opcode[11:16] or current_opcode[11:16] == next_opcode[6:11]:
 					self.is_stall = True
+					self.is_forward = True
 				else:
 					self.is_stall = False
+					self.is_forward = False
 			elif self.check_instruction(next_opcode) == 'Load':
 				if current_opcode[11:16] == next_opcode[6:11]:
 					self.is_stall = True
+					self.is_forward = True
 				else:
 					self.is_stall = False
+					self.is_forward = False
 			elif self.check_instruction(next_opcode) == 'Jump':
 				if current_opcode[11:16] == next_opcode[6:11]:
 					self.stall_jump = True
