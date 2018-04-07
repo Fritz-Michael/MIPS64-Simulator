@@ -50,6 +50,7 @@ class InternalRegisters:
 		self.is_forward = False
 		self.is_stall = False
 		self.stall_jump = False
+		self.forward_jump = False
 		self.if_id = IF_ID()
 		self.id_ex = ID_EX()
 		self.ex_mem = EX_MEM()
@@ -70,6 +71,7 @@ class InternalRegisters:
 		self.ex_mem.IR = self.id_ex.IR
 		self.ex_mem.NPC = self.id_ex.NPC
 		self.ex_mem.B = self.id_ex.B
+		self.id_ex.IR = 0
 
 	def cascade_ex_to_mem(self):
 		self.mem_wb.IR = self.ex_mem.IR
@@ -152,8 +154,10 @@ class InternalRegisters:
 			elif self.check_instruction(next_opcode) == 'Jump':
 				if current_opcode[16:21] == next_opcode[6:11]:
 					self.stall_jump = True
+					self.forward_jump = True
 				else:
 					self.stall_jump = False
+					self.forward_jump = False
 
 		elif self.check_instruction(current_opcode) == 'Immediate':
 			if self.check_instruction(next_opcode) == 'Register':
@@ -179,8 +183,10 @@ class InternalRegisters:
 			elif self.check_instruction(next_opcode) == 'Jump':
 				if current_opcode[11:16] == next_opcode[6:11]:
 					self.stall_jump = True
+					self.forward_jump = True
 				else:
 					self.stall_jump = False
+					self.forward_jump = False
 
 		elif self.check_instruction(current_opcode) == 'Load':
 			if self.check_instruction(next_opcode) == 'Register':
@@ -269,13 +275,21 @@ class InternalRegisters:
 		elif self.check_instruction(current_opcode) == 'Load':
 			if self.check_instruction(previous_opcode) == 'Register':
 				if previous_opcode[16:21] == current_opcode[6:11]:
-					self.id_ex.A = self.id_ex.ALU
+					self.id_ex.A = self.ex_mem.ALU
 			elif self.check_instruction(previous_opcode) == 'Immediate':
 				if previous_opcode[11:16] == current_opcode[6:11]:
-					self.id_ex.A = self.id_ex.ALU
+					self.id_ex.A = self.ex_mem.ALU
 			elif self.check_instruction(previous_opcode) == 'Load':
 				if previous_opcode[11:16] == current_opcode[6:11]:
 					self.id_ex.A = self.mem_wb.LMD
+
+		elif self.check_instruction(current_opcode) == 'Jump':
+			if self.check_instruction(previous_opcode) == 'Register':
+				if previous_opcode[16:21] == current_opcode[6:11]:
+					self.id_ex.A = self.ex_mem.ALU
+			elif self.check_instruction(previous_opcode) == 'Immediate':
+				if previous_opcode[11:16] == current_opcode[6:11]:
+					self.id_ex.A = self.ex_mem.ALU
 
 	def execution_redecode(self):
 		self.id_ex.A = self.registers.R[int(bin(int(self.id_ex.IR,16))[2:].zfill(32)[6:11],2)]
@@ -318,6 +332,8 @@ class InternalRegisters:
 	def instruction_decode(self):
 
 		self.temp_ir = bin(int(str(self.if_id.IR),16))[2:].zfill(32)
+		self.prev_ir = self.instructions[int((self.if_id.NPC-8)/4)]
+		self.prev_ir = bin(int(self.prev_ir,16))[2:].zfill(32)	
 		if self.is_compact:
 			self.id_ex.IR = 0
 			return False
@@ -326,6 +342,16 @@ class InternalRegisters:
 			self.id_ex.B = self.registers.R[int(bin(int(self.if_id.IR,16))[2:].zfill(32)[11:16],2)]
 			self.id_ex.IMM = self.twos_complement(str(self.if_id.IR[4:]))
 			#self.id_ex.IMM = int(bin(int(self.if_id.IR,16))[2:].zfill(32)[16:],2)
+
+			if self.forward_jump:
+				self.forward_jump = False
+				self.do_forwarding(self.temp_ir,self.prev_ir)
+				if self.id_ex.A < 0:
+					offset = int(self.temp_ir[2:].zfill(32)[16:32],2) << 2
+					self.if_id.PC = offset + self.if_id.NPC
+					self.if_id.NPC = self.if_id.PC
+
+
 			self.cascade_if_to_id()
 			return True
 		else:
@@ -336,10 +362,6 @@ class InternalRegisters:
 	def execution(self):
 
 		if self.id_ex.IR != 0 and not self.is_stall:
-
-			# if self.id_ex.IR == '0044182D':
-			# 	print('hello')
-			# 	a = input('')
 
 			self.execution_redecode()
 			self.temp_ir = bin(int(self.id_ex.IR,16))[2:].zfill(32)
