@@ -87,6 +87,20 @@ class InternalRegisters:
 		temp = ''.join(temp)
 		return temp + value
 
+	def i_sign_extend(self,value):
+		mask = 0b1111111111111111
+		if value[0] != '-':
+			value = bin(int(value,16))[2:].zfill(16)
+		else:
+			value = value[3:]
+			value = int(bin(int(value,16)),2) ^ mask
+			value = value + 0b1
+			value = bin(value)[2:]
+		sign = value[0]
+		temp = [sign for x in range(64-len(value))]
+		temp = ''.join(temp)
+		return temp + value
+
 	def twos_complement(self, value):
 		mask = 0xffffffffffffffff
 		binary = self.sign_extend(value)
@@ -391,13 +405,14 @@ class InternalRegisters:
 				value = []
 				for x in range(8):
 					value.append(self.memory.memory[0][hex(self.ex_mem.ALU+x)])
-				self.mem_wb.LMD = int('0x' + ''.join(value),16)
+				print(value)
+				self.mem_wb.LMD = self.twos_complement(''.join(value))
 
 				if self.is_forward:
 					self.is_stall = True
 
 			elif self.temp_ir[0:6] == '111111': #store instruction
-				value = hex(int(self.sign_extend(hex(self.ex_mem.B)[2:]),2))[2:].zfill(16)
+				value = hex(int(self.i_sign_extend(hex(self.ex_mem.B)),2))[2:].zfill(16)
 				#value = hex(self.ex_mem.B)[2:].zfill(16)
 				value = [value[i:i+2] for i in range(0, len(value), 2)]
 				for x in range(8):

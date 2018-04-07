@@ -28,7 +28,7 @@ class ErrorCheck:
 			return False
 
 	def valid_i_type_syntax(self,instruction):
-		if re.search(r'((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1]),(\s)*((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1]),(\s)*#\d{4}(\s)*$',instruction) is None:
+		if re.search(r'((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1]),(\s)*((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1]),(\s)*#\w{4}(\s)*$',instruction) is None:
 			return False
 		else:
 			return True
@@ -42,7 +42,7 @@ class ErrorCheck:
 			return False
 
 	def valid_memory_reference_syntax(self,instruction):
-		if re.search(r'((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1]),(\s)*\d{4}\(((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1])\)(\s)*$',instruction) is None:
+		if re.search(r'((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1]),(\s)*\w{4}\(((R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1])\)(\s)*$',instruction) is None:
 			return False
 		else:
 			return True
