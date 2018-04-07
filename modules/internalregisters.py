@@ -81,6 +81,7 @@ class InternalRegisters:
 		self.mem_wb.IR = 0
 
 	def sign_extend(self, value):
+		value = bin(int(value,16))[2:].zfill(16)
 		sign = value[0]
 		temp = [sign for x in range(64-len(value))]
 		temp = ''.join(temp)
@@ -88,8 +89,7 @@ class InternalRegisters:
 
 	def twos_complement(self, value):
 		mask = 0xffffffffffffffff
-		binary = bin(int(value,16))[2:].zfill(16)
-		binary = self.sign_extend(binary)
+		binary = self.sign_extend(value)
 		extended = int(binary,2)
 		if binary[0] == '1':
 			ones_complement = mask ^ extended
@@ -397,7 +397,8 @@ class InternalRegisters:
 					self.is_stall = True
 
 			elif self.temp_ir[0:6] == '111111': #store instruction
-				value = hex(self.ex_mem.B)[2:].zfill(16)
+				value = hex(int(self.sign_extend(hex(self.ex_mem.B)[2:]),2))[2:].zfill(16)
+				#value = hex(self.ex_mem.B)[2:].zfill(16)
 				value = [value[i:i+2] for i in range(0, len(value), 2)]
 				for x in range(8):
 					self.memory.memory[0][hex(self.ex_mem.ALU+x)] = value[x]
