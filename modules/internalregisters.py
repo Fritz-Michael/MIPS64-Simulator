@@ -80,6 +80,23 @@ class InternalRegisters:
 		self.wb.IR = self.mem_wb.IR
 		self.mem_wb.IR = 0
 
+	def sign_extend(self, value):
+		sign = value[0]
+		temp = [sign for x in range(64-len(value))]
+		temp = ''.join(temp)
+		return temp + value
+
+	def twos_complement(self, value):
+		mask = 0xffffffffffffffff
+		binary = bin(int(value,16))[2:].zfill(16)
+		binary = self.sign_extend(binary)
+		extended = int(binary,2)
+		if binary[0] == '1':
+			ones_complement = mask ^ extended
+			return -1 * (ones_complement+1)
+		else:
+			return int(value,16)
+
 	def check_instruction(self, opcode):
 		if opcode[26:32] == '101101' or opcode[26:32] == '101010': #register-to-register
 			return 'Register'
@@ -293,7 +310,8 @@ class InternalRegisters:
 		elif self.if_id.IR != 0 and not self.is_compact and not self.stall_jump and not self.is_stall:
 			self.id_ex.A = self.registers.R[int(bin(int(self.if_id.IR,16))[2:].zfill(32)[6:11],2)]
 			self.id_ex.B = self.registers.R[int(bin(int(self.if_id.IR,16))[2:].zfill(32)[11:16],2)]
-			self.id_ex.IMM = int(bin(int(self.if_id.IR,16))[2:].zfill(32)[16:],2)
+			self.id_ex.IMM = self.twos_complement(str(self.if_id.IR[4:]))
+			#self.id_ex.IMM = int(bin(int(self.if_id.IR,16))[2:].zfill(32)[16:],2)
 			self.cascade_if_to_id()
 			return True
 		else:
