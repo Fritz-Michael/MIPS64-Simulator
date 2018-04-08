@@ -129,50 +129,61 @@ class Opcode:
 			if self.error_check.valid_r_type_syntax(instruction):
 				opcode = '000000' + self.r_type(instruction)[0] + self.r_type(instruction)[1] + self.r_type(instruction)[2] + '00000101101'
 			else:
-				return 'Invalid Syntax ' + instruction
+				#return 'Invalid Syntax ' + instruction
+				raise ValueError('Invalid syntax {}'.format(instruction))
 		elif 'SLT' in instruction or 'slt' in instruction:
 			if self.error_check.valid_r_type_syntax(instruction):
 				opcode = '000000' + self.r_type(instruction)[0] + self.r_type(instruction)[1] + self.r_type(instruction)[2] + '00000101010'
 			else:
-				return 'Invalid Syntax ' + instruction
+				#return 'Invalid Syntax ' + instruction
+				raise ValueError('Invalid syntax {}'.format(instruction))
 		elif 'DADDIU' in instruction or 'daddiu' in instruction:
 			if self.error_check.valid_i_type_syntax(instruction):
 				opcode = '011001' + self.i_type(instruction)[0] + self.i_type(instruction)[1] + self.i_type(instruction)[2]
 			else:
-				return 'Invalid Syntax ' + instruction
+				#return 'Invalid Syntax ' + instruction
+				raise ValueError('Invalid syntax {}'.format(instruction))
 		elif 'XORI' in instruction or 'xori' in instruction:
 			if self.error_check.valid_i_type_syntax(instruction):
 				opcode = '001110' + self.i_type(instruction[0]) + self.i_type(instruction[1]) + self.i_type(instruction[2])
 			else:
-				return 'Invalid Syntax ' + instruction
+				#return 'Invalid Syntax ' + instruction
+				raise ValueError('Invalid syntax {}'.format(instruction))
 		elif 'LD' in instruction or 'ld' in instruction:
 			if self.error_check.valid_memory_reference_syntax(instruction):
 				opcode = '110111' + self.memory_reference(instruction)[0] + self.memory_reference(instruction)[1] + self.memory_reference(instruction)[2]
 			else:
-				return 'Invalid Syntax ' + instruction
+				#return 'Invalid Syntax ' + instruction
+				raise ValueError('Invalid syntax {}'.format(instruction))
 		elif 'SD' in instruction or 'sd' in instruction:
 			if self.error_check.valid_memory_reference_syntax(instruction):
 				opcode = '111111' + self.memory_reference(instruction)[0] + self.memory_reference(instruction)[1] + self.memory_reference(instruction)[2]
 			else:
-				return 'Invalid Syntax ' + instruction
+				#return 'Invalid Syntax ' + instruction
+				raise ValueError('Invalid syntax {}'.format(instruction))
 		elif 'BLTZ' in instruction or 'bltz' in instruction:
 			if self.error_check.valid_bltz_instruction(instruction):
 				if self.branch_bltz(instruction) is not False:
 					opcode = '000001' + self.branch_bltz(instruction)[0] + '00000' + self.branch_bltz(instruction)[1]
 				else:
-					return 'Offset not found!'
+					#return 'Offset not found!'
+					raise ValueError('Offset not found!')
 			else:
-				return 'Invalid Syntax ' + instruction
+				#return 'Invalid Syntax ' + instruction
+				raise ValueError('Invalid syntax {}'.format(instruction))
 		elif 'BC' in instruction or 'bc' in instruction:
 			if self.error_check.valid_bc_instruction(instruction):
 				if self.branch_bc(instruction) is not False:
 					opcode = '110010' + self.branch_bc(instruction)
 				else:
-					return 'Offset not found!'
+					#return 'Offset not found!'
+					raise ValueError('Offset not found!')
 			else:
-				return 'Invalid Syntax ' + instruction
+				#return 'Invalid Syntax ' + instruction
+				raise ValueError('Invalid syntax {}'.format(instruction))
 		else:
-			return 'Unknown Instruction ' + instruction
+			#return 'Unknown Instruction ' + instruction
+			raise ValueError('Unknown Instruction {}'.format(instruction))
 
 		return self.to_hex(opcode)
 
