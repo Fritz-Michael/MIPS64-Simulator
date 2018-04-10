@@ -1,4 +1,7 @@
 from PyQt5 import QtWidgets, QtCore, Qt
+from modules import * #Import the modules
+from modules.instructions import *
+from modules.pipelinemap import *
 import sys
 import os
 
@@ -7,7 +10,7 @@ class MainWindow(QtWidgets.QMainWindow):
 	def __init__(self,parent=None):
 		super(MainWindow, self).__init__(parent)
 		super().setWindowTitle("microMips Simulator")
-		self.resize(1280,720)
+		self.resize(1600,900)
 
 		menuBar = self.menuBar()
 		fileMenu = menuBar.addMenu('File')
@@ -69,6 +72,13 @@ class InputView(QtWidgets.QGridLayout):
 		self.text = QtWidgets.QPlainTextEdit()
 		self.load = QtWidgets.QPushButton("Load")
 		self.reset = QtWidgets.QPushButton("Reset")
+		print('Initialize input view')
+		self.pipeline = Pipeline([''])
+
+		"""Event Listeners"""
+		self.load.clicked.connect(self.load_input)
+		self.reset.clicked.connect(self.reset_registers)
+
 		self.init_ui()
 
 	def init_ui(self):
@@ -76,6 +86,27 @@ class InputView(QtWidgets.QGridLayout):
 		self.addWidget(self.text, 0, 0, 1, 2)
 		self.addWidget(self.load, 1, 0, 1, 1)
 		self.addWidget(self.reset, 1, 1, 1, 1)
+
+	def load_input(self):
+		"""Initialization of pipeline and registers"""
+		self.instructions = self.text.get() #instructions to interpret (e.g. ['DADDIU R1, R0, #fffe','SD R1, 0000(R0)', 'LD R2, 0000(R0)']) in list
+		self.opcode = Opcode(self.instructions) #object that will convert the instruction to its opcode counterpart
+
+		try: #try-except to check for syntax error
+			self.instruction_opcode = list(map(lambda x: self.opcode.get_opcode(x),self.instructions)) #contains the opcode of each instruction
+			self.pipeline = Pipeline(self.instruction_opcode)
+		except ValueError as e:
+			print(e) #dialog box displaying the error
+		except Exception as e:
+			print(e)
+
+	def reset_registers(self):
+		try:
+			self.pipeline.internal_registers.__init__(self.instruction_opcode)
+		except:
+			pass
+
+
 
 class OutputView(QtWidgets.QGridLayout):
 
@@ -86,11 +117,21 @@ class OutputView(QtWidgets.QGridLayout):
 		self.instructionScroll = QtWidgets.QScrollArea()
 		self.pipelineTable = QtWidgets.QTableWidget()
 		self.pipelineScroll = QtWidgets.QScrollArea()
+		self.fpTable = QtWidgets.QTableWidget()
+		self.fpScroll = QtWidgets.QScrollArea()
+		self.gpTable = QtWidgets.QTableWidget()
+		self.gpScroll = QtWidgets.QScrollArea()
+		self.memTable = QtWidgets.QTableWidget()
+		self.memScroll = QtWidgets.QScrollArea()
+
+		self.pipeline = Pipeline([''])
 
 		self.latestRow = 0
 		self.opcode_label = QtWidgets.QLabel("Opcode")
 		self.mem_label = QtWidgets.QLabel("Memory")
 		self.pipelineLabel = QtWidgets.QLabel("Pipeline Map")
+		self.fpLabel = QtWidgets.QLabel("FP Registers")
+		self.gpLabel = QtWidgets.QLabel("GP Registers")
 		self.init_ui()
 
 	def init_ui(self):
@@ -107,16 +148,31 @@ class OutputView(QtWidgets.QGridLayout):
 		self.instructionTable.setHorizontalHeaderItem(7,QtWidgets.QTableWidgetItem("HEX"))
 		self.instructionScroll.setWidget(self.instructionTable)
 		self.instructionScroll.setWidgetResizable(True)
-		self.addWidget(self.opcode_label, 0, 0, 1, 1)
-		self.addWidget(self.instructionScroll, 1, 0, 1, 1)
-
-
+		self.addWidget(self.opcode_label, 0, 0, 1, 2)
+		self.addWidget(self.instructionScroll, 1, 0, 1, 2)
 
 		self.pipelineScroll.setWidget(self.pipelineTable)
 		self.pipelineScroll.setWidgetResizable(True)
-		self.addWidget(self.pipelineLabel, 2, 0, 1, 1)
-		self.addWidget(self.pipelineScroll, 3, 0, 1, 1)
+		self.addWidget(self.pipelineLabel, 2, 0, 1, 2)
+		self.addWidget(self.pipelineScroll, 3, 0, 1, 2)
 
+		# self.gpScroll.setWidget(self.gpTable)
+		# self.gpScroll.setWidgetResizable(True)
+		# self.addWidget(self.gpLabel , 0, 2, 1, 1)
+		# self.addWidget(self.gpScroll, 1, 2, 1, 1)
+
+		# self.pipelineScroll.setWidget(self.pipelineTable)
+		# self.pipelineScroll.setWidgetResizable(True)
+		# self.addWidget(self.pipelineLabel, 2, 0, 1, 1)
+		# self.addWidget(self.pipelineScroll, 3, 0, 1, 1)
+		#
+		# self.pipelineScroll.setWidget(self.pipelineTable)
+		# self.pipelineScroll.setWidgetResizable(True)
+		# self.addWidget(self.pipelineLabel, 2, 0, 1, 1)
+		# self.addWidget(self.pipelineScroll, 3, 0, 1, 1)
+
+	def get_pipeline(self, pipeline):
+		self.pipeline = pipeline
 
 
 
@@ -155,7 +211,10 @@ class Tabs(QtWidgets.QGridLayout):
 		self.tabs.addTab(self.input_tabs,"Input")
 		self.tabs.addTab(self.output_tabs,"Output")
 		self.addWidget(self.tabs)
+		self.tabs.currentChanged.connect(self.pass_pipeline)
 
+	def pass_pipeline(self):
+		self.output_tabs.layout.get_pipeline(self.input_tabs.layout.pipeline)
 
 if __name__ == '__main__':
 	app = QtWidgets.QApplication(sys.argv)

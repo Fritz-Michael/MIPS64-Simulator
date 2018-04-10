@@ -1,5 +1,5 @@
-from internalregisters import *
-from instructions import *
+from modules.internalregisters import *
+from modules.instructions import *
 
 class Pipeline:
 
@@ -7,6 +7,7 @@ class Pipeline:
 		self.instructions = instructions
 		self.internal_registers = InternalRegisters(instructions)
 		self.cycles = []
+		self.values = []
 
 	def get_pipeline(self):
 		end = False
@@ -26,6 +27,7 @@ class Pipeline:
 			if self.internal_registers.instruction_fetch():
 				cycle[0] = 'IF'
 			self.cycles.append(cycle)
+			self.values.append(self)
 		print(self.cycles)
 		#print(self.internal_registers.memory.memory[0]['0x7'])
 

@@ -1,8 +1,8 @@
-from registers import *
-from memory import *
+from modules.registers import *
+from modules.memory import *
 
 class IF_ID:
-	
+
 	def __init__(self):
 		self.PC = 0
 		self.IR = 0
@@ -131,7 +131,7 @@ class InternalRegisters:
 
 		if self.check_instruction(current_opcode) == 'Register':
 			if self.check_instruction(next_opcode) == 'Register':
-				
+
 				if current_opcode[16:21] == next_opcode[6:11] or current_opcode[16:21] == next_opcode[11:16]:
 					self.is_forward = True
 				else:
@@ -228,7 +228,7 @@ class InternalRegisters:
 	def do_forwarding(self, current_opcode, previous_opcode):
 		if self.check_instruction(current_opcode) == 'Register':
 			if self.check_instruction(previous_opcode) == 'Register':
-				
+
 				if previous_opcode[16:21] == current_opcode[6:11]:
 					self.id_ex.A = self.ex_mem.ALU
 				elif previous_opcode[16:21] == current_opcode[11:16]:
@@ -293,7 +293,7 @@ class InternalRegisters:
 
 	def execution_redecode(self):
 		self.id_ex.A = self.registers.R[int(bin(int(self.id_ex.IR,16))[2:].zfill(32)[6:11],2)]
-		self.id_ex.B = self.registers.R[int(bin(int(self.id_ex.IR,16))[2:].zfill(32)[11:16],2)]		
+		self.id_ex.B = self.registers.R[int(bin(int(self.id_ex.IR,16))[2:].zfill(32)[11:16],2)]
 
 
 	def instruction_fetch(self):
@@ -333,7 +333,7 @@ class InternalRegisters:
 
 		self.temp_ir = bin(int(str(self.if_id.IR),16))[2:].zfill(32)
 		self.prev_ir = self.instructions[int((self.if_id.NPC-8)/4)]
-		self.prev_ir = bin(int(self.prev_ir,16))[2:].zfill(32)	
+		self.prev_ir = bin(int(self.prev_ir,16))[2:].zfill(32)
 		if self.is_compact:
 			self.id_ex.IR = 0
 			return False
@@ -366,7 +366,7 @@ class InternalRegisters:
 			self.execution_redecode()
 			self.temp_ir = bin(int(self.id_ex.IR,16))[2:].zfill(32)
 			self.prev_ir = self.instructions[int((self.id_ex.NPC-8)/4)]
-			self.prev_ir = bin(int(self.prev_ir,16))[2:].zfill(32)	
+			self.prev_ir = bin(int(self.prev_ir,16))[2:].zfill(32)
 
 			if self.temp_ir[26:32] == '101101': #DADDU instruction
 				if not self.is_forward:
@@ -409,7 +409,7 @@ class InternalRegisters:
 				self.next_ir = self.instructions[int(self.id_ex.NPC/4)]
 				self.next_ir = bin(int(self.next_ir,16))[2:].zfill(32)
 				self.check_forwarding(self.temp_ir,self.next_ir)
-			
+
 			self.cascade_id_to_ex()
 			return True
 		else:
