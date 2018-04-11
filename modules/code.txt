@@ -1,2 +1,0 @@
-BLTZ R1, L1
-L1: DADDU R1, R2, R3

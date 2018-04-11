@@ -69,6 +69,8 @@ class InputView(QtWidgets.QGridLayout):
 		self.text = QtWidgets.QPlainTextEdit()
 		self.load = QtWidgets.QPushButton("Load")
 		self.reset = QtWidgets.QPushButton("Reset")
+		# self.singleStep = QtWidgets.QPushButton("Single Step Execute")
+		# self.fullExec = QtWidgets.QPushButton("Full Execute")
 		self.init_ui()
 
 	def init_ui(self):
@@ -76,6 +78,8 @@ class InputView(QtWidgets.QGridLayout):
 		self.addWidget(self.text, 0, 0, 1, 2)
 		self.addWidget(self.load, 1, 0, 1, 1)
 		self.addWidget(self.reset, 1, 1, 1, 1)
+		self.addWidget(self.singleStep, 2, 0, 1, 1)
+		self.addWidget(self.fullExec, 2, 1, 1, 1)
 
 
 class OutputView(QtWidgets.QGridLayout):
@@ -87,8 +91,13 @@ class OutputView(QtWidgets.QGridLayout):
 		self.instructionScroll = QtWidgets.QScrollArea()
 		self.pipelineTable = QtWidgets.QTableWidget()
 		self.pipelineScroll = QtWidgets.QScrollArea()
+		self.memoryScroll = QtWidgets.QScrollArea()
+		self.memoryTable = QtWidgets.QTableWidget()
+		self.gpRegisterScroll = QtWidgets.QScrollArea()
+		self.gpRegisterTable = QtWidgets.QTableWidget()
 
 		self.latestRow = 0
+		self.gp_registers_label = QtWidgets.QLabel("GP Registers")
 		self.opcode_label = QtWidgets.QLabel("Opcode")
 		self.mem_label = QtWidgets.QLabel("Memory")
 		self.pipelineLabel = QtWidgets.QLabel("Pipeline Map")
@@ -111,13 +120,28 @@ class OutputView(QtWidgets.QGridLayout):
 		self.addWidget(self.opcode_label, 0, 0, 1, 1)
 		self.addWidget(self.instructionScroll, 1, 0, 1, 1)
 
-
-
+		self.pipelineTable.setColumnCount(1)
+		self.pipelineTable.setHorizontalHeaderItem(0, QtWidgets.QTableWidgetItem("Instructions"))
 		self.pipelineScroll.setWidget(self.pipelineTable)
 		self.pipelineScroll.setWidgetResizable(True)
 		self.addWidget(self.pipelineLabel, 2, 0, 1, 1)
 		self.addWidget(self.pipelineScroll, 3, 0, 1, 1)
 
+		self.gpRegisterTable.setColumnCount(2)
+		self.gpRegisterTable.setHorizontalHeaderItem(0,QtWidgets.QTableWidgetItem("GP Registers"))
+		self.gpRegisterTable.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
+		self.gpRegisterScroll.setWidget(self.gpRegisterTable)
+		self.gpRegisterScroll.setWidgetResizable(True)
+		self.addWidget(self.gp_registers_label, 0, 1, 1, 1)
+		self.addWidget(self.gpRegisterScroll, 1, 1, 1, 1)
+
+		self.memoryTable.setColumnCount(2)
+		self.memoryTable.setHorizontalHeaderItem(0,QtWidgets.QTableWidgetItem("Memory"))
+		self.memoryTable.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
+		self.memoryScroll.setWidget(self.memoryTable)
+		self.memoryScroll.setWidgetResizable(True)
+		self.addWidget(self.mem_label, 2, 1, 1, 1)
+		self.addWidget(self.memoryScroll, 3, 1, 1, 1)
 
 
 
