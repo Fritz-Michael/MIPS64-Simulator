@@ -1,5 +1,9 @@
-from modules.registers import *
-from modules.memory import *
+try:
+	from modules.registers import *
+	from modules.memory import *
+except:
+	from registers import *
+	from memory import *
 
 class IF_ID:
 
@@ -215,10 +219,13 @@ class InternalRegisters:
 					self.is_forward = False
 			elif self.check_instruction(next_opcode) == 'Jump':
 				if current_opcode[11:16] == next_opcode[6:11]:
+					self.is_stall = True
 					self.stall_jump = True
+					self.forward_jump = True
 				else:
 					self.stall_jump = False
 					self.is_stall = False
+					self.forward_jump = False
 
 
 		else:
@@ -290,6 +297,9 @@ class InternalRegisters:
 			elif self.check_instruction(previous_opcode) == 'Immediate':
 				if previous_opcode[11:16] == current_opcode[6:11]:
 					self.id_ex.A = self.ex_mem.ALU
+			elif self.check_instruction(previous_opcode) == 'Load':
+				if previous_opcode[11:16] == current_opcode[6:11]:
+					self.id_ex.A = self.mem_wb.LMD
 
 	def execution_redecode(self):
 		self.id_ex.A = self.registers.R[int(bin(int(self.id_ex.IR,16))[2:].zfill(32)[6:11],2)]
@@ -346,6 +356,7 @@ class InternalRegisters:
 			if self.forward_jump:
 				self.forward_jump = False
 				self.do_forwarding(self.temp_ir,self.prev_ir)
+				print(self.id_ex.A)
 				if self.id_ex.A < 0:
 					offset = int(self.temp_ir[2:].zfill(32)[16:32],2) << 2
 					self.if_id.PC = offset + self.if_id.NPC
@@ -361,7 +372,7 @@ class InternalRegisters:
 
 	def execution(self):
 
-		if self.id_ex.IR != 0 and not self.is_stall:
+		if self.id_ex.IR != 0 and not self.is_stall and not self.stall_jump:
 
 			self.execution_redecode()
 			self.temp_ir = bin(int(self.id_ex.IR,16))[2:].zfill(32)
@@ -448,7 +459,11 @@ class InternalRegisters:
 			return False
 
 	def writeback(self):
-		self.is_stall = False
+		if self.is_stall:
+			self.is_stall = False
+		elif self.stall_jump:
+			self.stall_jump = False
+
 		if self.mem_wb.IR != 0:
 			self.temp_ir = bin(int(self.mem_wb.IR,16))[2:].zfill(32)
 
