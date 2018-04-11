@@ -55,6 +55,7 @@ class InternalRegisters:
 		self.is_stall = False
 		self.stall_jump = False
 		self.forward_jump = False
+		self.pc_pass = False
 		self.if_id = IF_ID()
 		self.id_ex = ID_EX()
 		self.ex_mem = EX_MEM()
@@ -308,6 +309,9 @@ class InternalRegisters:
 
 	def instruction_fetch(self):
 
+		# if self.ex_mem.IR == '04200001':
+		# 	print(self.if_id.PC)
+
 		self.is_compact = False
 		if self.if_id.PC/4 > len(self.instructions)-1:
 			if not self.is_stall:
@@ -317,6 +321,7 @@ class InternalRegisters:
 			if not self.is_stall and not self.stall_jump:
 				self.temp_ir = bin(int(str(self.if_id.IR),16))[2:].zfill(32)
 				self.if_id.IR = self.instructions[int(self.if_id.PC/4)]
+				print(self.if_id.IR)
 				#if branch instruction
 				if (self.temp_ir[0:6] == '000001' and self.registers.R[int(self.temp_ir[2:].zfill(32)[6:11],2)] < 0) or self.temp_ir[0:6] == '110010':
 					offset = int(self.temp_ir[2:].zfill(32)[16:32],2) << 2
@@ -329,14 +334,14 @@ class InternalRegisters:
 					self.if_id.NPC += 4
 					self.if_id.PC += 4
 				return True
-			elif self.stall_jump:
-				self.stall_jump = False
-			elif self.is_stall:
-				self.is_stall = False
+			# elif self.stall_jump:
+			# 	self.stall_jump = False
+			# elif self.is_stall:
+			# 	self.is_stall = False
 			else:
 				# self.stall_jump = False
 				# self.is_stall = False
-				self.if_id.IR = 0
+				#self.if_id.IR = 0
 				return False
 
 	def instruction_decode(self):
@@ -353,15 +358,20 @@ class InternalRegisters:
 			self.id_ex.IMM = self.twos_complement(str(self.if_id.IR[4:]))
 			#self.id_ex.IMM = int(bin(int(self.if_id.IR,16))[2:].zfill(32)[16:],2)
 
+			if self.pc_pass:
+				self.pc_pass = False
+				self.if_id.PC = self.offset
+				self.if_id.NPC = self.offset
+
 			if self.forward_jump:
 				self.forward_jump = False
 				self.do_forwarding(self.temp_ir,self.prev_ir)
-				print(self.id_ex.A)
 				if self.id_ex.A < 0:
-					offset = int(self.temp_ir[2:].zfill(32)[16:32],2) << 2
-					self.if_id.PC = offset + self.if_id.NPC
-					self.if_id.NPC = self.if_id.PC
-
+					self.pc_pass = True
+					self.offset = int(self.temp_ir[2:].zfill(32)[16:32],2) << 2
+					self.offset = self.offset + self.if_id.NPC
+					# self.if_id.PC = self.offset + self.if_id.NPC
+					# self.if_id.NPC = self.if_id.PC
 
 			self.cascade_if_to_id()
 			return True
@@ -438,7 +448,6 @@ class InternalRegisters:
 				value = []
 				for x in range(8):
 					value.append(self.memory.memory[0][hex(self.ex_mem.ALU+x)])
-				print(value)
 				self.mem_wb.LMD = self.twos_complement(''.join(value))
 
 				if self.is_forward:
