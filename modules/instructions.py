@@ -192,4 +192,4 @@ class Opcode:
 if __name__ == '__main__':
 	instruction = ['DADDIU R1, R0, #0003']
 	temp = Opcode(instruction)
-	print(temp.get_opcode(instruction[0]))
+	print(bin(int(temp.get_opcode(instruction[0]),16))[2:].zfill(32))
