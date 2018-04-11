@@ -1,4 +1,5 @@
 from internalregisters import *
+from instructions import *
 
 class Pipeline:
 
@@ -9,25 +10,30 @@ class Pipeline:
 
 	def get_pipeline(self):
 		end = False
-		cycle = [None,None,None,None,None]
-		while(!end):
-			self.internal_registers.cascade_all()
+		while not end:
+			cycle = [None,None,None,None,None]
 
-			if self.internal_registers.wb.IR != 0:
-				self.internal_registers.writeback()
+			if self.internal_registers.writeback():
 				cycle[4] = 'WB'
-				pass
-			if self.internal_registers.mem_wb.IR != 0:
-				self.internal_registers.memory_access()
+				if self.internal_registers.wb.IR == self.instructions[-1]:
+					end = True
+			if self.internal_registers.memory_access():
 				cycle[3] = 'MEM'
-			if self.internal_registers.ex_mem.IR != 0:
-				self.internal_registers.execution()
+			if self.internal_registers.execution():
 				cycle[2] = 'EX'
-			if self.internal_registers.id_ex.IR != 0:
-				self.internal_registers.instruction_decode()
+			if self.internal_registers.instruction_decode():
 				cycle[1] = 'ID'
-		
-			self.internal_registers.instruction_fetch()
-			cycle[0] = 'IF'
+			if self.internal_registers.instruction_fetch():
+				cycle[0] = 'IF'
+			self.cycles.append(cycle)
+		print(self.cycles)
 
 
+if __name__ == '__main__':
+	instructions = ['LD R1, 1000(R0)', 'BLTZ R1, L1', 'DADDU R2, R0, R3', 'L1: DADDU R3, R4, R5']
+	opcode = Opcode(instructions)
+	ins = list(map(lambda x: opcode.get_opcode(x),instructions))
+	print(ins)
+	temp = Pipeline(ins)
+	temp.get_pipeline()
+	print(temp.internal_registers.registers.R)

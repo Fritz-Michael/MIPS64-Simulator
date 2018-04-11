@@ -119,7 +119,7 @@ class Opcode:
 		temp = instruction.split(' ')
 		temp1 = [i for i, j in enumerate(self.instructions) if temp[1].lstrip() in j]
 		if len(temp1) > 1:
-			offset = temp1[1] + (temp1[0]+1)
+			offset = temp1[1] - (temp1[0]+1)
 			return bin(offset)[2:].zfill(26)
 		else:
 			return False
@@ -179,6 +179,7 @@ class Opcode:
 
 
 if __name__ == '__main__':
+<<<<<<< HEAD
 	# instruction = ['BLTZ R1,        L1','NOP','L1: DADDU R1,             R2,              R3']
 	instructions = []
 	with open("code.txt", 'r') as programText:
@@ -189,3 +190,8 @@ if __name__ == '__main__':
 	print(instructions)
 	temp = Opcode(instructions)
 	print(temp.get_opcode(instructions[1]))
+=======
+	instruction = ['DADDIU R1, R0, #0003']
+	temp = Opcode(instruction)
+	print(temp.get_opcode(instruction[0]))
+>>>>>>> Pipeline-Map
