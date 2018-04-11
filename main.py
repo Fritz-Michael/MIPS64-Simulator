@@ -177,7 +177,7 @@ class OutputView(QtWidgets.QGridLayout):
         self.addWidget(self.memoryScroll, 3, 1, 1, 1)
 
     def get_pipeline(self, pipeline):
-        self.pipeline = pipeline
+        self.pipeline = pipeline.get_pipeline()
 
 
 # class MemoryAndRegisterView(QtWidgets.QGridLayout):
