@@ -223,8 +223,18 @@ class OutputView(QtWidgets.QGridLayout):
         self.addWidget(self.memoryScroll, 3, 1, 1, 1)
 
         self.gotoMemory = QtWidgets.QLineEdit()
+        self.gotoMemory.setPlaceholderText("GOTO Memory")
         self.addWidget(self.gotoMemory, 4,1,1,1)
 
+        self.gotoButton = QtWidgets.QPushButton("GOTO Memory")
+        self.gotoButton.clicked.connect(self.gotoAction)
+        self.addWidget(self.gotoButton, 5,1,1,1)
+
+    def gotoAction(self):
+        needle = self.gotoMemory.text()
+        out = self.memoryTable.findItems(needle, QtCore.Qt.MatchExactly)
+        for item in out:
+           self.memoryTable.setCurrentCell(item.row(), item.column())
     def get_pipeline(self, pipeline):
         self.pipeline = pipeline
 
@@ -237,10 +247,24 @@ class OutputView(QtWidgets.QGridLayout):
         self.updateOpcode()
         self.updatePipeline()
 
+    def i_sign_extend(self, value):
+        mask = 0b1111111111111111
+        if value[0] != '-':
+            value = bin(int(value, 16))[2:].zfill(16)
+        else:
+            value = value[3:]
+            value = int(bin(int(value, 16)), 2) ^ mask
+            value = value + 0b1
+            value = bin(value)[2:]
+        sign = value[0]
+        temp = [sign for x in range(64 - len(value))]
+        temp = ''.join(temp)
+        return temp + value
+
     def updateRegisterValues(self):
         for y in range(0, 32):
             self.gpRegisterTable.setItem(y, 0, QtWidgets.QTableWidgetItem("R" + str(y)))
-            self.gpRegisterTable.setItem(y, 1, QtWidgets.QTableWidgetItem(str(self.pipeline.registers[self.cycleCtr].R[y])))
+            self.gpRegisterTable.setItem(y, 1, QtWidgets.QTableWidgetItem(str(hex(int(self.i_sign_extend(hex(self.pipeline.registers[self.cycleCtr].R[y])),2))[2:].zfill(16))))
 
     def updateMemory(self):
         for y in range(0,self.cycleCtr+1):

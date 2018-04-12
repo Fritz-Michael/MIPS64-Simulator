@@ -2,14 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="235ab148-f495-4e77-a87e-7654e4346266" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/MIPS64-Simulator.iml" afterPath="$PROJECT_DIR$/.idea/MIPS64-Simulator.iml" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/main.py" afterPath="$PROJECT_DIR$/main.py" />
-      <change beforePath="$PROJECT_DIR$/modules/instructions.py" afterPath="$PROJECT_DIR$/modules/instructions.py" />
-      <change beforePath="$PROJECT_DIR$/modules/internalregisters.py" afterPath="$PROJECT_DIR$/modules/internalregisters.py" />
-      <change beforePath="$PROJECT_DIR$/modules/memory.py" afterPath="$PROJECT_DIR$/modules/memory.py" />
-      <change beforePath="$PROJECT_DIR$/modules/pipelinemap.py" afterPath="$PROJECT_DIR$/modules/pipelinemap.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -36,11 +29,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="main.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="main.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="257">
-              <caret line="248" column="108" lean-forward="false" selection-start-line="248" selection-start-column="108" selection-end-line="248" selection-end-column="108" />
+            <state relative-caret-position="415">
+              <caret line="236" column="8" lean-forward="false" selection-start-line="236" selection-start-column="8" selection-end-line="236" selection-end-column="8" />
               <folding>
                 <element signature="e#0#35#0" expanded="true" />
               </folding>
@@ -48,7 +41,7 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="instructions.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="instructions.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/modules/instructions.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="576">
@@ -61,8 +54,8 @@
       <file leaf-file-name="internalregisters.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/modules/internalregisters.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="463">
-              <caret line="459" column="62" lean-forward="false" selection-start-line="459" selection-start-column="62" selection-end-line="459" selection-end-column="62" />
+            <state relative-caret-position="-6278">
+              <caret line="96" column="4" lean-forward="true" selection-start-line="96" selection-start-column="4" selection-end-line="108" selection-end-column="27" />
               <folding />
             </state>
           </provider>
@@ -98,8 +91,8 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/modules/pipelinemap.py" />
-        <option value="$PROJECT_DIR$/main.py" />
         <option value="$PROJECT_DIR$/modules/instructions.py" />
+        <option value="$PROJECT_DIR$/main.py" />
       </list>
     </option>
   </component>
@@ -318,29 +311,29 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="257">
-          <caret line="248" column="108" lean-forward="false" selection-start-line="248" selection-start-column="108" selection-end-line="248" selection-end-column="108" />
-          <folding>
-            <element signature="e#0#35#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/modules/internalregisters.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="463">
-          <caret line="459" column="62" lean-forward="false" selection-start-line="459" selection-start-column="62" selection-end-line="459" selection-end-column="62" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/modules/instructions.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="576">
           <caret line="102" column="20" lean-forward="false" selection-start-line="102" selection-start-column="20" selection-end-line="102" selection-end-column="20" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/modules/internalregisters.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-6278">
+          <caret line="96" column="4" lean-forward="true" selection-start-line="96" selection-start-column="4" selection-end-line="108" selection-end-column="27" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="415">
+          <caret line="236" column="8" lean-forward="false" selection-start-line="236" selection-start-column="8" selection-end-line="236" selection-end-column="8" />
+          <folding>
+            <element signature="e#0#35#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
