@@ -199,6 +199,10 @@ class OutputView(QtWidgets.QGridLayout):
         self.gotoMemory = QtWidgets.QLineEdit()
         self.addWidget(self.gotoMemory, 4,1,1,1)
 
+    def get_pipeline(self, pipeline):
+        self.pipeline = pipeline.get_pipeline()
+
+
         self.gotoButton = QtWidgets.QPushButton("GOTO Memory")
         self.addWidget(self.gotoButton, 5,1,1,1)
 
