@@ -100,6 +100,7 @@ class Opcode:
 		rt = rt.group(0)
 		temp = temp[1].split('(')
 		offset = bin(int(temp[0][1:],16))[2:].zfill(16)
+		print(offset)
 		base = re.search(r'(R|r)[0-9]|(R|r)[1-2][0-9]|(R|r)3[0-1]',temp[1])
 		base = base.group(0)
 		return (self.to_binary(base),self.to_binary(rt),offset)

@@ -13,26 +13,37 @@ class Pipeline:
 		self.internal_registers = InternalRegisters(opcode)
 		self.cycles = []
 		self.values = []
+		self.registers = []
+		self.memory = []
 
 	def get_pipeline(self):
+
 		end = False
 		while not end:
+			# print(self.cycles)
 			cycle = [None,None,None,None,None]
-
+			value = []
 			if self.internal_registers.writeback():
 				cycle[4] = 'WB'
 				if self.internal_registers.wb.IR == self.opcode[-1]:
 					end = True
+			value.append(self.internal_registers.wb.IR)
 			if self.internal_registers.memory_access():
 				cycle[3] = 'MEM'
+			value.append(self.internal_registers.mem_wb.IR)
 			if self.internal_registers.execution():
 				cycle[2] = 'EX'
+			value.append(self.internal_registers.ex_mem.IR)
 			if self.internal_registers.instruction_decode():
 				cycle[1] = 'ID'
+			value.append(self.internal_registers.id_ex.IR)
 			if self.internal_registers.instruction_fetch():
 				cycle[0] = 'IF'
+			value.append(self.internal_registers.if_id.IR)
 			self.cycles.append(cycle)
-			self.values.append(self)
+			self.values.append(value)
+			self.registers.append(self.internal_registers.registers)
+			self.memory.append(self.internal_registers.memory)
 		print(self.cycles)
 		#print(self.internal_registers.memory.memory[0]['0x7'])
 

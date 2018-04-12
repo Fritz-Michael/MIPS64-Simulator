@@ -30,7 +30,8 @@ class MainWindow(QtWidgets.QMainWindow):
         #Link functions to action
         save_action.triggered.connect(self.save_text)
         open_action.triggered.connect(self.open_text)
-
+        oneCyc_action.triggered.connect(self.run_one_cyc)
+        fullCyc_action.triggered.connect(self.full_exec)
         #Add actions to fileMenu
         fileMenu.addAction(open_action)
         fileMenu.addAction(save_action)
@@ -57,6 +58,17 @@ class MainWindow(QtWidgets.QMainWindow):
     def update_output(self):
         main.widget_frame.layout.output_tabs.layout.update_opcode()
 
+    def run_one_cyc(self):
+        main.widget_frame.layout.output_tabs.layout.cycleCtr+=1
+        main.widget_frame.layout.output_tabs.layout.updatePipeline()
+        main.widget_frame.layout.output_tabs.layout.updateRegisterValues()
+        main.widget_frame.layout.output_tabs.layout.updateMemory()
+
+    def full_exec(self):
+        main.widget_frame.layout.output_tabs.layout.cycleCtr=len(main.widget_frame.layout.output_tabs.layout.pipeline.values)-1
+        main.widget_frame.layout.output_tabs.layout.updatePipeline()
+        main.widget_frame.layout.output_tabs.layout.updateRegisterValues()
+        main.widget_frame.layout.output_tabs.layout.updateMemory()
     def clear_text(self):
         self.text.clear()
 
@@ -106,12 +118,16 @@ class InputView(QtWidgets.QGridLayout):
         try:
             self.instruction_opcode = list(map(lambda x: self.opcode.get_opcode(x),self.instructions))
             self.pipeline = Pipeline(self.instructions,self.instruction_opcode)
+            self.pipeline.get_pipeline()
+
+            print(len(self.pipeline.values))
         except ValueError as ve:
             print(ve)
             return
-        except Exception as e:
-            print(e)
-            return
+        # except Exception as e:
+        #     print(e)
+        #     print('first')
+        #     return
         print(self.frame)
 
     @QtCore.pyqtSlot()
@@ -130,11 +146,12 @@ class OutputView(QtWidgets.QGridLayout):
         self.instructionScroll = QtWidgets.QScrollArea()
         self.pipelineTable = QtWidgets.QTableWidget()
         self.pipelineScroll = QtWidgets.QScrollArea()
+        self.pipelineOutput = QtWidgets.QPlainTextEdit()
         self.memoryScroll = QtWidgets.QScrollArea()
         self.memoryTable = QtWidgets.QTableWidget()
         self.gpRegisterScroll = QtWidgets.QScrollArea()
         self.gpRegisterTable = QtWidgets.QTableWidget()
-
+        self.cycleCtr = 0
         self.pipeline = Pipeline([''],[''])
 
         self.latestRow = 0
@@ -163,12 +180,16 @@ class OutputView(QtWidgets.QGridLayout):
         self.addWidget(self.opcode_label, 0, 0, 1, 1)
         self.addWidget(self.instructionScroll, 1, 0, 1, 1)
 
-        self.pipelineTable.setColumnCount(1)
-        self.pipelineTable.setHorizontalHeaderItem(0, QtWidgets.QTableWidgetItem("Instructions"))
-        self.pipelineScroll.setWidget(self.pipelineTable)
-        self.pipelineScroll.setWidgetResizable(True)
-        self.addWidget(self.pipelineLabel, 2, 0, 1, 1)
-        self.addWidget(self.pipelineScroll, 3, 0, 1, 1)
+        # self.pipelineTable.setColumnCount(1)
+        # self.pipelineTable.setHorizontalHeaderItem(0, QtWidgets.QTableWidgetItem("Cycles"))
+        # self.pipelineTable.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
+        # self.pipelineScroll.setWidget(self.pipelineTable)
+        # self.pipelineScroll.setWidgetResizable(True)
+        # self.addWidget(self.pipelineLabel, 2, 0, 1, 1)
+        # self.addWidget(self.pipelineScroll, 3, 0, 1, 1)
+
+        self.addWidget(self.pipelineLabel, 2,0,1,1)
+        self.addWidget(self.pipelineOutput, 3,0,1,1)
 
         self.gpRegisterTable.setColumnCount(2)
         self.gpRegisterTable.setRowCount(32)
@@ -186,9 +207,14 @@ class OutputView(QtWidgets.QGridLayout):
             self.gpRegisterTable.setItem(x, 0, QtWidgets.QTableWidgetItem("R"+str(x)))
             self.gpRegisterTable.setItem(x, 1, QtWidgets.QTableWidgetItem("0000000000000000"))
 
+        self.memoryTable.setRowCount(4096)
         self.memoryTable.setColumnCount(2)
         self.memoryTable.setHorizontalHeaderItem(0,QtWidgets.QTableWidgetItem("Memory"))
         self.memoryTable.setHorizontalHeaderItem(1,QtWidgets.QTableWidgetItem("Value"))
+        for x in range(0,4096):
+            print(x)
+            self.memoryTable.setItem(x, 0, QtWidgets.QTableWidgetItem(str(hex(x))))
+            self.memoryTable.setItem(x, 1, QtWidgets.QTableWidgetItem("0000000000000000"))
         self.memoryTable.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
         self.memoryTable.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
         self.memoryScroll.setWidget(self.memoryTable)
@@ -200,23 +226,32 @@ class OutputView(QtWidgets.QGridLayout):
         self.addWidget(self.gotoMemory, 4,1,1,1)
 
     def get_pipeline(self, pipeline):
-        self.pipeline = pipeline.get_pipeline()
-
+        self.pipeline = pipeline
 
         self.gotoButton = QtWidgets.QPushButton("GOTO Memory")
         self.addWidget(self.gotoButton, 5,1,1,1)
 
     def load_pipeline_from_input(self, pipeline):
         self.pipeline = pipeline
+        print(self.pipeline)
         self.updateOpcode()
+        self.updatePipeline()
 
     def updateRegisterValues(self):
-        pass
+        for y in range(0, 32):
+            self.gpRegisterTable.setItem(y, 0, QtWidgets.QTableWidgetItem("R" + str(y)))
+            self.gpRegisterTable.setItem(y, 1, QtWidgets.QTableWidgetItem(str(self.pipeline.registers[self.cycleCtr].R[y])))
+
+    def updateMemory(self):
+        for y in range(0,self.cycleCtr+1):
+            for x in range(4096):
+                self.memoryTable.setItem(x, 0, QtWidgets.QTableWidgetItem(str(hex(x))))
+                self.memoryTable.setItem(x, 1, QtWidgets.QTableWidgetItem(str(self.pipeline.memory[y].memory[0][hex(x)])))
 
     def updateOpcode(self):
         self.clearOpcode()
         print(len(self.pipeline.instructions))
-        if(len(self.pipeline.instructions) > 1):
+        if(len(self.pipeline.instructions) >= 1):
             self.instructionTable.setRowCount(len(self.pipeline.instructions))
             for ctr in range(0, len(self.pipeline.instructions)):
                 self.currOpcode = bin(int(self.pipeline.opcode[ctr],16))[2:].zfill(32)
@@ -232,6 +267,30 @@ class OutputView(QtWidgets.QGridLayout):
                 self.instructionTable.setItem(ctr, 6, QtWidgets.QTableWidgetItem(self.parts[5]))
                 self.instructionTable.setItem(ctr, 7, QtWidgets.QTableWidgetItem(self.currOpcode))
 
+    def updatePipeline(self):
+        self.clearPipeline()
+        print(len(self.pipeline.values))
+        self.pipelineTable.setRowCount(len(self.pipeline.cycles)*5+len(self.pipeline.cycles))
+        print()
+        for x in range(0,self.cycleCtr+1):
+            print(str(x))
+            self.pipelineOutput.insertPlainText('Cycle '+str(x+1) + '\n')
+            self.pipelineOutput.insertPlainText('IF = ' + str(self.pipeline.values[x][4]) + '\n')
+            self.pipelineOutput.insertPlainText('ID = ' + str(self.pipeline.values[x][3]) + '\n')
+            self.pipelineOutput.insertPlainText('EX = ' + str(self.pipeline.values[x][2]) + '\n')
+            self.pipelineOutput.insertPlainText('MEM = ' + str(self.pipeline.values[x][1]) + '\n')
+            self.pipelineOutput.insertPlainText('WB = ' + str(self.pipeline.values[x][0]) + '\n')
+            # self.pipelineTable.setItem(x+1, 0, QtWidgets.QTableWidget("Cycle " + str(x)))
+            # self.pipelineTable.setItem(x+3, 0, QtWidgets.QTableWidgetItem(str(self.pipeline.values[x].if_id.IR)))
+            # self.pipelineTable.setItem(x+^, 0, QtWidgets.QTableWidgetItem(self.pipeline.values[x].id_ex.IR))
+            # self.pipelineTable.setItem(x*4, 0, QtWidgets.QTableWidgetItem(self.pipeline.values[x].ex_mem.IR))
+            # self.pipelineTable.setItem(x*5, 0, QtWidgets.QTableWidgetItem(self.pipeline.values[x].mem_wb.IR))
+            # self.pipelineTable.setItem(x*6, 0, QtWidgets.QTableWidgetItem(self.pipeline.values[x].wb.IR))
+
+        #self.pipelineTable.setRowCount(len(self.pipeline.cycles))
+    def clearPipeline(self):
+        self.pipelineOutput.clear()
+        #self.pipelineTable.clearContents()
 
     def clearRegistervalues(self):
         pass

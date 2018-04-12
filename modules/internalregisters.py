@@ -347,8 +347,11 @@ class InternalRegisters:
 	def instruction_decode(self):
 
 		self.temp_ir = bin(int(str(self.if_id.IR),16))[2:].zfill(32)
-		self.prev_ir = self.instructions[int((self.if_id.NPC-8)/4)]
-		self.prev_ir = bin(int(self.prev_ir,16))[2:].zfill(32)
+		try:
+			self.prev_ir = self.instructions[int((self.if_id.NPC-8)/4)]
+			self.prev_ir = bin(int(self.prev_ir,16))[2:].zfill(32)
+		except:
+			pass
 		if self.is_compact:
 			self.id_ex.IR = 0
 			return False
