@@ -60,6 +60,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def run_one_cyc(self):
         main.widget_frame.layout.output_tabs.layout.cycleCtr+=1
+      #  main.widget_frame.layout.output_tabs.layout.updateCycleLabel()
         main.widget_frame.layout.output_tabs.layout.updatePipeline()
         main.widget_frame.layout.output_tabs.layout.updateRegisterValues()
         main.widget_frame.layout.output_tabs.layout.updateMemory()
@@ -230,6 +231,9 @@ class OutputView(QtWidgets.QGridLayout):
         self.gotoButton.clicked.connect(self.gotoAction)
         self.addWidget(self.gotoButton, 5,1,1,1)
 
+        self.cycleLabel = QtWidgets.QLabel("Cycle: ")
+        self.addWidget(self.cycleLabel, 4,0,1,1)
+
     def gotoAction(self):
         needle = self.gotoMemory.text()
         out = self.memoryTable.findItems(needle, QtCore.Qt.MatchExactly)
@@ -260,6 +264,9 @@ class OutputView(QtWidgets.QGridLayout):
         temp = [sign for x in range(64 - len(value))]
         temp = ''.join(temp)
         return temp + value
+
+    def updateCycleLabel(self, number):
+        self.cycleLabel.setText("Cycle: "+str(number))
 
     def updateRegisterValues(self):
         for y in range(0, 32):
@@ -297,6 +304,7 @@ class OutputView(QtWidgets.QGridLayout):
         self.pipelineTable.setRowCount(len(self.pipeline.cycles)*5+len(self.pipeline.cycles))
         print()
         for x in range(0,self.cycleCtr+1):
+            self.updateCycleLabel(x+1)
             print(str(x))
             self.pipelineOutput.insertPlainText('Cycle '+str(x+1) + '\n')
             self.pipelineOutput.insertPlainText('IF = ' + str(self.pipeline.values[x][4]) + '\n')
