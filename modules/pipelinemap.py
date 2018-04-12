@@ -1,15 +1,16 @@
-try:
-	from modules.internalregisters import *
-	from modules.instructions import *
-except:
-	from internalregisters import *
-	from instructions import *
+# try:
+from modules.internalregisters import *
+from modules.instructions import *
+# except:
+# 	from internalregisters import *
+# 	from instructions import *
 
 class Pipeline:
 
-	def __init__(self, instructions):
+	def __init__(self, instructions, opcode):
 		self.instructions = instructions
-		self.internal_registers = InternalRegisters(instructions)
+		self.opcode = opcode
+		self.internal_registers = InternalRegisters(opcode)
 		self.cycles = []
 		self.values = []
 
@@ -20,7 +21,7 @@ class Pipeline:
 
 			if self.internal_registers.writeback():
 				cycle[4] = 'WB'
-				if self.internal_registers.wb.IR == self.instructions[-1]:
+				if self.internal_registers.wb.IR == self.opcode[-1]:
 					end = True
 			if self.internal_registers.memory_access():
 				cycle[3] = 'MEM'
@@ -41,10 +42,11 @@ if __name__ == '__main__':
 	#instructions = ['DADDIU R1, R0, #0003','SD R1, 0000(R0)', 'LD R2, 0000(R0)','DADDU R3, R2, R4', 'DADDU R5, R6, R7']
 	#instructions = ['BC L1','DADDU R1, R2, R3','L1: DADDIU R2, R0, #0004']
 	#instructions = ['DADDIU R1, R0, #FFFF','BLTZ R1, L1','DADDIU R3, R0, #0003','L1: DADDIU R2, R0, #0001']
-	#instructions = ['DADDIU R1, R0, #fffe','SD R1, 0000(R0)','LD R1, 0000(R0)','BLTZ R1, L1', 'DADDIU R2, R3, #FFFF', 'L1: DADDIU R4, R5, #0000']
+	instructions = ['DADDIU R1, R0, #fffe','SD R1, 0000(R0)','LD R1, 0000(R0)','BLTZ R1, L1', 'DADDIU R2, R3, #FFFF', 'L1: DADDIU R4, R5, #0000']
 	opcode = Opcode(instructions)
 	ins = list(map(lambda x: opcode.get_opcode(x),instructions))
 	print(ins)
-	temp = Pipeline(ins)
+	temp = Pipeline(instructions, ins)
 	temp.get_pipeline()
 	print(temp.internal_registers.registers.R)
+	print(instructions)

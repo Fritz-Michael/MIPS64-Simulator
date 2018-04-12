@@ -22,6 +22,8 @@ class MainWindow(QtWidgets.QMainWindow):
         #Add submenus
         save_action = QtWidgets.QAction('Save', self)
         open_action = QtWidgets.QAction('Open', self)
+
+        update_action = QtWidgets.QAction('Update output', self)
         oneCyc_action = QtWidgets.QAction('Execute 1 cycle', self)
         fullCyc_action = QtWidgets.QAction('Execute all possible cycles', self)
 
@@ -34,7 +36,7 @@ class MainWindow(QtWidgets.QMainWindow):
         fileMenu.addAction(save_action)
         runMenu.addAction(oneCyc_action)
         runMenu.addAction(fullCyc_action)
-
+        runMenu.addAction(update_action)
         self.widget_frame = WindowFrame(Tabs)
         self.setCentralWidget(self.widget_frame)
 
@@ -51,6 +53,9 @@ class MainWindow(QtWidgets.QMainWindow):
             file_text = f.read()
             main.widget_frame.layout.input_tabs.layout.text.clear()
             main.widget_frame.layout.input_tabs.layout.text.insertPlainText(file_text)
+
+    def update_output(self):
+        main.widget_frame.layout.output_tabs.layout.update_opcode()
 
     def clear_text(self):
         self.text.clear()
@@ -69,14 +74,16 @@ class InputView(QtWidgets.QGridLayout):
 
     def __init__(self,frame):
         super().__init__()
+        self.frame = frame
         self.instruction_opcode = []
         self.text = QtWidgets.QPlainTextEdit()
         self.load = QtWidgets.QPushButton("Load")
         self.reset = QtWidgets.QPushButton("Reset")
         self.instructions = []
+        self.instruction_opcode = []
         # self.singleStep = QtWidgets.QPushButton("Single Step Execute")
         # self.fullExec = QtWidgets.QPushButton("Full Execute")
-        self.pipeline = Pipeline([''])
+        self.pipeline = Pipeline([''],[''])
         self.init_ui()
 
     def init_ui(self):
@@ -87,6 +94,7 @@ class InputView(QtWidgets.QGridLayout):
         # self.addWidget(self.singleStep, 2, 0, 1, 1)
         # self.addWidget(self.fullExec, 2, 1, 1, 1)
         self.load.clicked.connect(self.load_input)
+        self.reset.clicked.connect(self.reset_registers)
 
     @QtCore.pyqtSlot()
     def load_input(self):
@@ -97,12 +105,16 @@ class InputView(QtWidgets.QGridLayout):
 
         try:
             self.instruction_opcode = list(map(lambda x: self.opcode.get_opcode(x),self.instructions))
-            self.pipeline = Pipeline(self.instruction_opcode)
+            self.pipeline = Pipeline(self.instructions,self.instruction_opcode)
         except ValueError as ve:
             print(ve)
+            return
         except Exception as e:
             print(e)
+            return
+        print(self.frame)
 
+    @QtCore.pyqtSlot()
     def reset_registers(self):
         try:
             self.pipeline.internal_registers.__init__(self.instruction_opcode)
@@ -123,7 +135,7 @@ class OutputView(QtWidgets.QGridLayout):
         self.gpRegisterScroll = QtWidgets.QScrollArea()
         self.gpRegisterTable = QtWidgets.QTableWidget()
 
-        self.pipeline = Pipeline([''])
+        self.pipeline = Pipeline([''],[''])
 
         self.latestRow = 0
         self.gp_registers_label = QtWidgets.QLabel("GP Registers")
@@ -144,6 +156,8 @@ class OutputView(QtWidgets.QGridLayout):
         self.instructionTable.setHorizontalHeaderItem(5,QtWidgets.QTableWidgetItem("B: 10-6"))
         self.instructionTable.setHorizontalHeaderItem(6,QtWidgets.QTableWidgetItem("B: 5-0"))
         self.instructionTable.setHorizontalHeaderItem(7,QtWidgets.QTableWidgetItem("HEX"))
+        self.instructionTable.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
+        self.instructionTable.horizontalHeader().setSectionResizeMode(7, QtWidgets.QHeaderView.ResizeToContents)
         self.instructionScroll.setWidget(self.instructionTable)
         self.instructionScroll.setWidgetResizable(True)
         self.addWidget(self.opcode_label, 0, 0, 1, 1)
@@ -157,6 +171,7 @@ class OutputView(QtWidgets.QGridLayout):
         self.addWidget(self.pipelineScroll, 3, 0, 1, 1)
 
         self.gpRegisterTable.setColumnCount(2)
+        self.gpRegisterTable.setRowCount(32)
         self.gpRegisterTable.setHorizontalHeaderItem(0,QtWidgets.QTableWidgetItem("GP Registers"))
         self.gpRegisterTable.setHorizontalHeaderItem(1,QtWidgets.QTableWidgetItem("Value"))
         self.gpRegisterTable.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
@@ -165,6 +180,11 @@ class OutputView(QtWidgets.QGridLayout):
         self.gpRegisterScroll.setWidgetResizable(True)
         self.addWidget(self.gp_registers_label, 0, 1, 1, 1)
         self.addWidget(self.gpRegisterScroll, 1, 1, 1, 1)
+
+        for x in range(0,32):
+            print(x)
+            self.gpRegisterTable.setItem(x, 0, QtWidgets.QTableWidgetItem("R"+str(x)))
+            self.gpRegisterTable.setItem(x, 1, QtWidgets.QTableWidgetItem("0000000000000000"))
 
         self.memoryTable.setColumnCount(2)
         self.memoryTable.setHorizontalHeaderItem(0,QtWidgets.QTableWidgetItem("Memory"))
@@ -176,9 +196,43 @@ class OutputView(QtWidgets.QGridLayout):
         self.addWidget(self.mem_label, 2, 1, 1, 1)
         self.addWidget(self.memoryScroll, 3, 1, 1, 1)
 
-    def get_pipeline(self, pipeline):
-        self.pipeline = pipeline
+        self.gotoMemory = QtWidgets.QLineEdit()
+        self.addWidget(self.gotoMemory, 4,1,1,1)
 
+        self.gotoButton = QtWidgets.QPushButton("GOTO Memory")
+        self.addWidget(self.gotoButton, 5,1,1,1)
+
+    def load_pipeline_from_input(self, pipeline):
+        self.pipeline = pipeline
+        self.updateOpcode()
+
+    def updateRegisterValues(self):
+        pass
+
+    def updateOpcode(self):
+        self.clearOpcode()
+        print(len(self.pipeline.instructions))
+        if(len(self.pipeline.instructions) > 1):
+            self.instructionTable.setRowCount(len(self.pipeline.instructions))
+            for ctr in range(0, len(self.pipeline.instructions)):
+                self.currOpcode = bin(int(self.pipeline.opcode[ctr],16))[2:].zfill(32)
+                indices = [0, 6, 11, 16, 21 ,26]
+                self.parts = [self.currOpcode[i:j] for i, j in zip(indices, indices[1:] + [None])]
+                print(self.parts)
+                self.instructionTable.setItem(ctr, 0, QtWidgets.QTableWidgetItem(self.pipeline.instructions[ctr]))
+                self.instructionTable.setItem(ctr, 1, QtWidgets.QTableWidgetItem(self.parts[0]))
+                self.instructionTable.setItem(ctr, 2, QtWidgets.QTableWidgetItem(self.parts[1]))
+                self.instructionTable.setItem(ctr, 3, QtWidgets.QTableWidgetItem(self.parts[2]))
+                self.instructionTable.setItem(ctr, 4, QtWidgets.QTableWidgetItem(self.parts[3]))
+                self.instructionTable.setItem(ctr, 5, QtWidgets.QTableWidgetItem(self.parts[4]))
+                self.instructionTable.setItem(ctr, 6, QtWidgets.QTableWidgetItem(self.parts[5]))
+                self.instructionTable.setItem(ctr, 7, QtWidgets.QTableWidgetItem(self.currOpcode))
+
+
+    def clearRegistervalues(self):
+        pass
+    def clearOpcode(self):
+        self.instructionTable.clearContents()
 
 # class MemoryAndRegisterView(QtWidgets.QGridLayout):
 #
@@ -217,8 +271,10 @@ class Tabs(QtWidgets.QGridLayout):
         self.tabs.addTab(self.output_tabs,"Output")
         self.addWidget(self.tabs)
         self.tabs.currentChanged.connect(self.pass_pipeline)
+        print(self.tabs.widget(0))
+
     def pass_pipeline(self):
-        self.output_tabs.layout.get_pipeline(self.input_tabs.layout.pipeline)
+        self.output_tabs.layout.load_pipeline_from_input(self.input_tabs.layout.pipeline)
 
 
 if __name__ == '__main__':
